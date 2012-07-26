@@ -1,8 +1,8 @@
 package server;
 
 import java.net.*;
-import java.nio.*;
 import java.nio.channels.*;
+import java.util.Vector;
 import java.util.concurrent.Executors;
 
 
@@ -11,6 +11,8 @@ public class Server {
 
 	final AsynchronousChannelGroup group;
 	final AsynchronousServerSocketChannel acceptor;
+	
+	Vector<Connection> clients;
 
 
 	Server(int port) throws Exception {
@@ -21,9 +23,7 @@ public class Server {
 	}
 	
 	void ServerLoop() throws Exception {
-		AsynchronousSocketChannel socket = acceptor.accept().get();
-	    System.out.println("Accepted " + socket.getRemoteAddress().toString());
-	    socket.close();
+		clients.add(new Connection(acceptor.accept().get()));
 	}
 	
 	/**
