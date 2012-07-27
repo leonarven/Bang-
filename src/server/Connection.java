@@ -22,15 +22,18 @@ public class Connection {
 	CompletionHandler<Integer, ByteBuffer> receiveHandler = new CompletionHandler<Integer, ByteBuffer>() {
 		@Override
 		public void completed(Integer result, ByteBuffer attachment) {
-			
+			String buffer;
 			try {
-				System.out.println("Received data:" + game.Engine.DecodeString(attachment));
+				buffer = game.Engine.DecodeString(attachment);
+				if (!buffer.isEmpty()) 
+					System.out.println("Received data:" + buffer);
 			} catch (CharacterCodingException e) {
 				System.out.println("Failed to decode sent data");
 			
 			}
 				
 			// FIXME: Can this cause stack overflow? 
+			// - Yes.
 			StartReceive();
 
 		}

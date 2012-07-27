@@ -3,26 +3,21 @@ package game;
 import java.util.TreeMap;
 
 public class GameContext {
-	private static int playerCount = 0;
+	private int playerCount = 0;
+
+	private TreeMap<Integer, Player> players = new TreeMap<Integer, Player>();
 	
-	private static TreeMap<Integer, Player> players = new TreeMap<Integer, Player>();
-	
-	public static Player GetPlayer(int id) {
-		return players.get(id);
+	public void Reset() {
+		this.playerCount = 0;
+		this.players.clear();
 	}
-	
-	public static Player AddPlayer() {
-		Player player = new Player(++playerCount);
-		players.put(playerCount, player);
+
+	public Player AddPlayer() {
+		Player player = new Player(++this.playerCount);
+		this.players.put(this.playerCount, player);
 		return player;
 	}
-	
-	public static int GetPlayerCount() {
-		return playerCount;
-	}
-	
-	public static void Reset() {
-		playerCount = 0;
-		
-	}
+
+	public Player	GetPlayer(int id)	{ return this.players.get(id); }
+	public int		GetPlayerCount()	{ return this.playerCount; }
 }
