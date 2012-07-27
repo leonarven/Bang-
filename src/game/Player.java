@@ -1,8 +1,16 @@
 package game;
 
 public class Player {
-	public Player() {
-		
+	private final int id;
+	
+	public Player(int id) {
+		this.id = id;
 		
 	}
+	
+	public int GetId() {
+		return id;
+	}
+	
+
 }
