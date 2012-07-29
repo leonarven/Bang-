@@ -13,7 +13,6 @@ public class Connection {
 	public static int 		timeout 	= 5;
 	public static TimeUnit 	timeunit 	= TimeUnit.SECONDS;
 
-	
 	private AsynchronousSocketChannel socket;
 	private final int id;
 
@@ -35,7 +34,6 @@ public class Connection {
 			// FIXME: Can this cause stack overflow? 
 			// - Yes.
 			StartReceive();
-
 		}
 
 		@Override
@@ -86,24 +84,21 @@ public class Connection {
 		} catch (Exception e) {}
 	}
 	
-	private void StartWrite(ByteBuffer buffer) {
-		socket.read(buffer, timeout, timeunit, null, writeHandler);
-	}
+	private void StartWrite(ByteBuffer buffer)
+		{ socket.read(buffer, timeout, timeunit, null, writeHandler); }
 	
-	private void StartReceive() {
-		socket.read(receiveBuffer, timeout, timeunit, receiveBuffer, receiveHandler);
-
-	}
+	private void StartReceive()
+		{ socket.read(receiveBuffer, timeout, timeunit, receiveBuffer, receiveHandler); }
 	
 	public void Send(String message) throws CharacterCodingException {
 		StartWrite(game.Engine.EncodeString(message));
 	}
 	
-	public InetSocketAddress GetRemoteAddress()
-	{
+	public InetSocketAddress GetRemoteAddress() {
 		try {
 			return (InetSocketAddress) socket.getRemoteAddress();
 		} catch (IOException e) {
+			
 			return null;
 		}
 
