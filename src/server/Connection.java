@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 public class Connection {
 	public static final int BUFFER_SIZE = 512;
 	
-	public static int 		timeout 	= 5;
+	public static int 		timeout 	= 100;
 	public static TimeUnit 	timeunit 	= TimeUnit.SECONDS;
 
 	private AsynchronousSocketChannel socket;
@@ -21,16 +21,10 @@ public class Connection {
 	CompletionHandler<Integer, ByteBuffer> receiveHandler = new CompletionHandler<Integer, ByteBuffer>() {
 		@Override
 		public void completed(Integer result, ByteBuffer attachment) {
-			String buffer;
-			try {
-				buffer = game.Engine.DecodeString(attachment);
-				if (!buffer.isEmpty()) 
-					System.out.println("Received data:" + buffer);
-			} catch (CharacterCodingException e) {
-				System.out.println("Failed to decode sent data");
+			byte[] bytearray = new byte[attachment.remaining()];
+			attachment.get(bytearray);
+			System.out.println("Received " + result + " bytes: " + new String(bytearray));
 			
-			}
-				
 			// FIXME: Can this cause stack overflow? 
 			// - Yes.
 			StartReceive();
@@ -40,17 +34,16 @@ public class Connection {
 		public void failed(Throwable exc, ByteBuffer attachment) {
 			if (exc.getClass() == InterruptedByTimeoutException.class) {
 				
-				System.out.println("Timeout receiving - better ping the client.");
+				System.out.println("Timeout received - better ping the client.");
 				
-				try {
-					// Restart receiving
-					socket.shutdownInput();
-					StartReceive();
-					
-				} catch (IOException e) {
-					Server.instance.DropClient(id);
-				}
+				// Ping client...
+				// Restart receiving
+				
+				Server.instance.DropClient(id);
+				
 			} else {
+				System.out.println("Failed to receive data: " + exc.toString());
+				exc.printStackTrace();
 				Server.instance.DropClient(id);
 			}
 		}
@@ -58,12 +51,12 @@ public class Connection {
 	CompletionHandler<Integer, Object> writeHandler = new CompletionHandler<Integer, Object>() {
 		@Override
 		public void completed(Integer result, Object attachment) {
-			// Sent successfully
-
+			System.out.println("Sent successfully");
 		}
 
 		@Override
 		public void failed(Throwable exc, Object attachment) {
+			System.out.println("Failed to send");
 			Server.instance.DropClient(id);
 		}
 	};
@@ -85,13 +78,17 @@ public class Connection {
 	}
 	
 	private void StartWrite(ByteBuffer buffer)
-		{ socket.read(buffer, timeout, timeunit, null, writeHandler); }
+		{ socket.write(buffer, timeout, timeunit, null, writeHandler); }
 	
 	private void StartReceive()
 		{ socket.read(receiveBuffer, timeout, timeunit, receiveBuffer, receiveHandler); }
 	
 	public void Send(String message) throws CharacterCodingException {
 		StartWrite(game.Engine.EncodeString(message));
+	}
+	
+	public boolean IsConnected() {
+		return socket.isOpen();
 	}
 	
 	public InetSocketAddress GetRemoteAddress() {

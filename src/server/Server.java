@@ -31,9 +31,12 @@ public class Server {
 		acceptor = AsynchronousServerSocketChannel.open(group);
 		acceptor.bind(new InetSocketAddress(ip, port), BACKLOG);
 		
+		if (!acceptor.isOpen()) {
+			System.out.println("Failed to open acceptor");
+		}
+		
 		connections = new HashMap<Integer, Connection>();
 		
-		System.out.println("... Ready!");
 		System.out.println("Listening to " + ip + ":" + port);
 	}
 	
@@ -53,25 +56,41 @@ public class Server {
 	
 	public void DropClient(int id) {
 		if (connections.containsKey(id)) {
-			System.out.println("Dropping client from: " + connections.get(id).GetRemoteAddress().toString());
+			if (connections.get(id).IsConnected()) {
+				System.out.println("Dropping client from: " + connections.get(id).GetRemoteAddress().toString());
+			} else {
+				System.out.println("Client has dc'd");
+			}
+			
 			connections.remove(id);
-
-			//FIXME: For some reason connections don't get destroyed
 		}
 	}
 	
 	private void ServerLoop() throws Exception {
-		try(AsynchronousSocketChannel socket = acceptor.accept().get()) {
-			System.out.println("Incoming connection from " + socket.getRemoteAddress());
-
-			ByteBuffer buffer = ByteBuffer.allocateDirect(CAPACITY);
+		
+		try {
+			AsynchronousSocketChannel socket = AsynchronousSocketChannel.open(group);
 			
-			while(socket.read(buffer).get() != -1) {
-				System.out.println("Receiving '" + buffer + "'");
+			socket = acceptor.accept().get();
+			
+			System.out.println("Incoming connection from " + socket.getRemoteAddress());
+			
+			ByteBuffer buffer = ByteBuffer.allocate(CAPACITY);
+			while (true) {
+				int receivedBytes = socket.read(buffer).get();
+				if (receivedBytes != -1) {
+					buffer.flip();
+					System.out.println("Received " + receivedBytes + " bytes: '" + new String(buffer.array(), 0, receivedBytes) + "'");
+				} else {
+					System.out.println("Failed to receive data");
+					break;
+				}
+				
+				buffer.clear();
 			}
-
-			connections.put(++connectionCounter, new Connection(connectionCounter, socket));
-			System.out.println("Connection completed from: " + connections.get(connectionCounter).GetRemoteAddress().toString());
+			
+			//connections.put(++connectionCounter, new Connection(connectionCounter, socket));
+			//System.out.println("Connection completed from: " + connections.get(connectionCounter).GetRemoteAddress().toString());
 
 		} catch ( Exception e ) {
 
@@ -83,16 +102,15 @@ public class Server {
 	
 	public static void main(String[] args) {
 		System.out.print("Address to listen (" + IP + "): ");
-		String nPort = reader.nextLine();
-		System.out.print("Port to listen (" + PORT + "): ");
 		String nIp = reader.nextLine();
+		System.out.print("Port to listen (" + PORT + "): ");
+		String nPort = reader.nextLine();
 
 		if (!nPort.isEmpty()) PORT = Integer.parseInt(nPort);
 		if (!nIp.isEmpty())   IP = nIp;
 		try {
 			instance = new Server(IP, PORT);
 
-			System.out.println("Starting ServerLoop.");
 			while (instance.running) {
 				instance.ServerLoop();
 			}
