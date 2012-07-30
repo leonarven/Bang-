@@ -3,10 +3,10 @@ package network;
 import java.nio.ByteBuffer;
 
 public class Packet {
-	private PacketType type;
-	private int        from;
-	private int        to;
-	private byte[]     data;
+	public PacketType type;
+	public int        from;
+	public int        to;
+	public byte[]     data;
 
 	public Packet(ByteBuffer buffer) {
 		buffer.position(0);
@@ -41,27 +41,6 @@ public class Packet {
 		tmp.put(this.data);
 		return tmp;
 	}
-	
-	public int getFrom()
-		{ return this.from; }
-	public int getTo()
-		{ return this.to; }
-	public byte[] getData()
-		{ return this.data; }
-	public PacketType getType()
-		{ return this.type; }
-
-	public void setFrom(int from)
-		{ this.from = from; }
-	public void setTo(int to)
-		{ this.to = to; }
-	public void setData(byte[] data)
-		{ this.data = data; }
-	public void setType(PacketType type)
-		{ this.type = type; }
-	public void setType(char type)
-		{ this.type = PacketType.fromChar(type); }
-
 	
 	@Override
 	public String toString() {
