@@ -36,7 +36,7 @@ public class Server {
 		acceptor.bind(new InetSocketAddress(ip, port), BACKLOG);
 		
 		if (!acceptor.isOpen()) {
-			System.out.println("Failed to open acceptor");
+			System.err.println("Failed to open acceptor");
 		}
 		
 		connections = new HashMap<Integer, Connection>();

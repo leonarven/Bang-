@@ -33,6 +33,9 @@ public class Ping {
 		this.startTime = -1;
 		this.running = false;
 	}
+	public boolean validate(Packet packet)
+		{ return (packet.getData() == this.magicNumber); }
+
 	public boolean isRunning()
 		{ return this.running; }
 	public byte[] getMagicNumber()

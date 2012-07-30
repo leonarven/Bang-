@@ -38,8 +38,9 @@ public class Connection {
 			Server.instance.HandlePacket(packet);
 
 			if (packet.getType() == PacketType.PING) {
-				if (packet.getData() == ping.getMagicNumber()) {
-					System.out.println("PING correct!");
+				if (ping.validate(packet)) {
+					ping.stop();
+					System.out.println("PING correct in time " + ping.getTime() + "!");
 				} else {
 					System.err.println("Wrong PING received!");
 					Server.instance.DropClient(id);
@@ -104,12 +105,15 @@ public class Connection {
 		{ socket.read(receiveBuffer, timeout, timeunit, receiveBuffer, receiveHandler); }
 	
 	public void Send(Packet packet) {
+		System.out.println("Sending packet " + packet.getType() + " " + packet.getFrom() + "->" + packet.getTo() + ":" + packet);
 		boolean writeInProgress = !messageQueue.isEmpty();
 		messageQueue.add(packet);
 		
 		// Only one write per channel is possible
 		if (!writeInProgress) {
 			StartWrite();
+		} else {
+			System.out.println("Pushing to queue.");
 		}
 	}
 	
