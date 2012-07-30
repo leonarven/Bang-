@@ -37,7 +37,7 @@ public class Connection {
 			
 			Server.instance.HandlePacket(packet);
 
-			if (packet.getType() == PacketType.PING) {
+			if (packet.type == PacketType.PING) {
 				if (ping.validate(packet)) {
 					ping.stop();
 					System.out.println("PING correct in time " + ping.getTime() + "!");
@@ -98,6 +98,9 @@ public class Connection {
 		} catch (Exception e) {}
 	}
 	
+	public int getId() 
+		{ return this.id; }
+	
 	private void StartWrite() 
 		{ socket.write(messageQueue.poll().toByteBuffer(), timeout, timeunit, null, writeHandler); }
 	
@@ -105,7 +108,7 @@ public class Connection {
 		{ socket.read(receiveBuffer, timeout, timeunit, receiveBuffer, receiveHandler); }
 	
 	public void Send(Packet packet) {
-		System.out.println("Sending packet " + packet.getType() + " " + packet.getFrom() + "->" + packet.getTo() + ":" + packet);
+		System.out.println("Sending packet " + packet.type + " " + packet.from + "->" + packet.to + ":" + packet);
 		boolean writeInProgress = !messageQueue.isEmpty();
 		messageQueue.add(packet);
 		

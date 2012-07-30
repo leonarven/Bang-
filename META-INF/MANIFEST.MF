@@ -1,6 +1,7 @@
 Manifest-Version: 1.0
+Main-Class: client.Client
 Bundle-ManifestVersion: 2
-Bundle-Name: Bang_
-Bundle-SymbolicName: Bang_
+Bundle-Name: Bang
+Bundle-SymbolicName: Bang
 Bundle-Version: 1.0.0.qualifier
-Export-Package: Bang
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7

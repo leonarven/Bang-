@@ -1,6 +1,5 @@
 package server;
 
-
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
@@ -19,8 +18,7 @@ public class Server {
 	public static int		PORT		= 6667;
 	public static String	IP			= "127.0.0.1";
 	public static int		BACKLOG		= 10;
-	public static int		CAPACITY	= 1024;
-
+	
 	final AsynchronousChannelGroup group;
 	final AsynchronousServerSocketChannel acceptor;
 	
@@ -45,15 +43,15 @@ public class Server {
 	}
 
 	public void HandlePacket(Packet packet) {
-		System.out.println("Received packet " + packet.getType() + " " + packet.getFrom() + "->" + packet.getTo() + ":" + packet);
-		switch(packet.getType()) {
+		System.out.println("Received packet " + packet.type + " " + packet.from + "->" + packet.to + ":" + packet);
+		switch(packet.type) {
 			case CHAT:
 				SendToAll(packet);
 			case PING:
 				break;
 			case MSG:
 			default:
-				System.out.println("MSG from client " + packet.getFrom() + ":" + packet);
+				System.out.println("MSG from client " + packet.from + ":" + packet);
 				if (true) break; // FIXME
 			case ILLEGAL: 
 				System.err.println("ILLEGAL packet received!");
@@ -63,20 +61,6 @@ public class Server {
 	public void SendToAll(Packet packet) {
 		for (Connection c : this.connections.values())
 			c.Send(packet);
-	}
-	
-	public void NegotiateClient() {
-		/* Before connection gets accepted into a game:
-		 * > Send 		Hello Message
-		 * > Send 		Version
-		 * > Send 		Ping
-		 * < Receive 	Ping
-		 * < Receive 	ClientInfo <Nickname,Version,...>
-		 * 
-		 * Add Player to game
-		 * Otherwise timeout and drop the client
-		 */
-		
 	}
 	
 	public void DropClient(int id) {
@@ -98,7 +82,9 @@ public class Server {
 			AsynchronousSocketChannel socket = acceptor.accept().get();
 			
 			System.out.println("Incoming connection from " + socket.getRemoteAddress());
-			connections.put(++connectionCounter, new Connection(connectionCounter, socket));
+			Connection connection = new Connection(++connectionCounter, socket);
+			connection.Send(new Packet(PacketType.SERVER_INFO, 0, connection.getId(), ))
+			connections.put(connection.getId(), connection);
 
 		} catch ( Exception e ) {
 
