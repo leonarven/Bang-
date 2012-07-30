@@ -7,6 +7,9 @@ import java.nio.channels.*;
 import java.util.*;
 import java.util.concurrent.*;
 
+import network.Packet;
+import network.PacketType;
+
 public class Server {
 	public static Scanner reader = new Scanner(System.in);
 
@@ -38,6 +41,20 @@ public class Server {
 		connections = new HashMap<Integer, Connection>();
 		
 		System.out.println("Listening to " + ip + ":" + port);
+	}
+
+	private void HandlePacket(Packet packet) {
+		switch(packet.getType()) {
+			case CHAT:
+				SendToAll(packet);
+			case ILLEGAL: default:
+				System.err.println("ILLEGAL packet received!");
+		}
+	}
+
+	public void SendToAll(Packet packet) {
+		for (Connection c : this.connections.values())
+			c.Send(packet);
 	}
 	
 	public void NegotiateClient() {

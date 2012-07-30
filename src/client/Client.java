@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.Scanner;
 import java.util.concurrent.Executors;
-
+import network.*;
 import server.Server;
 
 
@@ -31,18 +31,12 @@ public class Client {
 				return;
 			}
 			
-			attachment.flip();
-			String message = game.Engine.DecodeString(attachment);
-			System.out.println("Received " + result + " bytes: '" + message + "'");
-			attachment.clear();
-			
-			//TODO: do own method for handling messages
-			if (message.substring(0, 5) == "PING ") {
-				message = "PING " + message.substring(5);
-				Send(message);
-			}
-			
+			Packet packet = new Packet(attachment);
 			socket.read(attachment, attachment, this);
+
+			System.out.println("Received packet " + packet.getType() + " " + packet.getFrom() + "->" + packet.getTo() + ":" + packet);
+			
+			HandlePacket(packet);
 		}
 
 		@Override
@@ -50,6 +44,16 @@ public class Client {
 			System.out.println("Failed to receive data: " + exc.toString());
 		}
 	};
+	
+	private void HandlePacket(Packet packet) {
+		switch(packet.getType()) {
+			case PING:
+				Send(packet);
+				break;
+			case ILLEGAL: default:
+				System.err.println("ILLEGAL packet received!");
+		}
+	}
 	
 	private Client() throws Exception {
 		group = AsynchronousChannelGroup.withThreadPool(Executors.newSingleThreadExecutor());
@@ -75,10 +79,11 @@ public class Client {
 		}
 	}
 	
-	private int Send(ByteBuffer buffer) {
+	private int Send(Packet packet) {
+		System.out.println("Sending " + packet);
 		int bytesSent = -1;
 		try {
-			bytesSent = socket.write(buffer).get();
+			bytesSent = socket.write(packet.toByteBuffer()).get();
 			if (bytesSent == -1) {
 				System.err.println("Failed to send data");
 				Disconnect();
@@ -88,16 +93,13 @@ public class Client {
 		}
 		return bytesSent;
 	}
-	private int Send(String buffer)
-		{ return Send(game.Engine.EncodeString(buffer)); }
 
 	private void ClientLoop() throws Exception {
 		
 		System.out.print("> ");
 		String message = reader.nextLine();
-		ByteBuffer buffer = game.Engine.EncodeString(message);
 
-		Send(buffer);
+		Send(new Packet('C', 0, 0, message));
 		
 		// Give server some time to respond => nicer console output 
 		Thread.sleep(100);
@@ -105,7 +107,8 @@ public class Client {
 
 	public static void main(String[] args) {
 		System.out.print("Use as server (y/n): ");
-		if (reader.nextLine().charAt(0) == 'y') {
+		String asServer = reader.nextLine();
+		if (!asServer.isEmpty() && asServer.charAt(0) == 'y') {
 			server.Server.main(args);
 			return;
 		}

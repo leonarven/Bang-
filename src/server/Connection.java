@@ -13,7 +13,6 @@ import network.*;
 
 public class Connection {
 	public static final int BUFFER_SIZE = 1024;
-	
 	public static int 		timeout 	= 100;
 	public static TimeUnit 	timeunit 	= TimeUnit.SECONDS;
 
@@ -23,7 +22,7 @@ public class Connection {
 	private final int id;
 
 	private ByteBuffer receiveBuffer;
-	private Queue<String> messageQueue = new LinkedList<String>();
+	private Queue<Packet> messageQueue = new LinkedList<Packet>();
 
 	CompletionHandler<Integer, ByteBuffer> receiveHandler = new CompletionHandler<Integer, ByteBuffer>() {
 		@Override
@@ -33,23 +32,24 @@ public class Connection {
 				return;
 			}
 
-			attachment.flip();
-			String message = game.Engine.DecodeString(attachment);
-			System.out.println("Received " + result + " bytes: '" + message + "'");
-			attachment.clear();
+			Packet packet = new Packet(attachment);
+//			if (packet.getFrom() == this.
+			
+			System.out.println("Received packet " + packet.getType() + " " + packet.getFrom() + "->" + packet.getTo() + ":" + packet);
+
 			StartReceive();
 			
 			//TODO: do own method for handling messages
-			if (message.substring(0, 5) == "PONG ") {
+/*			if (message.substring(0, 5) == "PONG ") {
 				if (message.substring(5) == Long.toString(ping.getMagicNumber())) {
 					ping.stop();
 				} else {
 					System.err.println("Wrong PONG -magic number received from client " + id);
 					Server.instance.DropClient(id);
 				}
-			}
+			}*/
 			
-			Send(message);
+			Send(packet);
 		}
 
 		@Override
@@ -58,8 +58,7 @@ public class Connection {
 				
 				System.out.println("Timeout received - better ping the client.");
 				
-				ping.start();
-				Send("PING " + ping.getMagicNumber());
+				Send(ping.start());
 			} else {
 				System.out.println("Failed to receive data: " + exc.toString());
 				exc.printStackTrace();
@@ -89,6 +88,8 @@ public class Connection {
 
 		receiveBuffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
 		
+		Send(ping.start());
+
 		StartReceive();
 	}
 	
@@ -100,14 +101,14 @@ public class Connection {
 	}
 	
 	private void StartWrite() 
-		{ socket.write(game.Engine.EncodeString(messageQueue.poll()), timeout, timeunit, null, writeHandler); }
+		{ socket.write(messageQueue.poll().toByteBuffer(), timeout, timeunit, null, writeHandler); }
 	
 	private void StartReceive() 
 		{ socket.read(receiveBuffer, timeout, timeunit, receiveBuffer, receiveHandler); }
 	
-	public void Send(String message) {
+	public void Send(Packet packet) {
 		boolean writeInProgress = !messageQueue.isEmpty();
-		messageQueue.add(message);
+		messageQueue.add(packet);
 		
 		// Only one write per channel is possible
 		if (!writeInProgress) {
