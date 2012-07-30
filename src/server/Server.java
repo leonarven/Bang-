@@ -9,6 +9,7 @@ import java.util.concurrent.*;
 import network.Packet;
 import network.PacketType;
 import network.Ping;
+import network.ServerInfo;
 
 public class Server {
 	public static Scanner reader = new Scanner(System.in);
@@ -83,7 +84,9 @@ public class Server {
 			
 			System.out.println("Incoming connection from " + socket.getRemoteAddress());
 			Connection connection = new Connection(++connectionCounter, socket);
-			connection.Send(new Packet(PacketType.SERVER_INFO, 0, connection.getId(), ))
+			connection.Send(new ServerInfo(connectionCounter));
+			
+			
 			connections.put(connection.getId(), connection);
 
 		} catch ( Exception e ) {

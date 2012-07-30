@@ -1,9 +1,14 @@
 package network;
 
-public class ClientInfo {
+import java.nio.ByteBuffer;
 
-	public ClientInfo() {
-		// TODO Auto-generated constructor stub
+public class ClientInfo extends Packet {
+
+	public ClientInfo(ByteBuffer buffer) {
+		super(buffer);
+
 	}
+	
+	public ClientInfo()
 
 }
