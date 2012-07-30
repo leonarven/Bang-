@@ -44,8 +44,8 @@ public class Client {
 	};
 	
 	private void HandlePacket(Packet packet) {
-		System.out.println("Received packet " + packet.getType() + " " + packet.getFrom() + "->" + packet.getTo() + ":" + packet);
-		switch(packet.getType()) {
+		System.out.println("Received packet " + packet.type + " " + packet.from + "->" + packet.to + ":" + packet);
+		switch(packet.type) {
 			case MSG:
 			case CHAT:
 				System.out.println(packet);
