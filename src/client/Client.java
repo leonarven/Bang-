@@ -7,6 +7,8 @@ import java.nio.channels.*;
 import java.util.Scanner;
 import java.util.concurrent.Executors;
 
+import server.Server;
+
 
 public class Client {
 	public static Scanner reader = new Scanner(System.in);
@@ -20,6 +22,29 @@ public class Client {
 	
 	boolean running = true;
 	
+	ByteBuffer readBuffer = ByteBuffer.allocateDirect(CAPACITY);
+	CompletionHandler<Integer, ByteBuffer> receiveHandler = new CompletionHandler<Integer, ByteBuffer>() {
+		@Override
+		public void completed(Integer result, ByteBuffer attachment) {
+			if (result == -1) {
+				Disconnect();
+				return;
+			}
+			
+			attachment.flip();
+			String message = game.Engine.DecodeString(attachment);
+			System.out.println("Received " + result + " bytes: '" + message + "'");
+			attachment.clear();
+			
+			client.read(attachment, attachment, this);
+		}
+
+		@Override
+		public void failed(Throwable exc, ByteBuffer attachment) {
+			System.out.println("Failed to receive data: " + exc.toString());
+		}
+	};
+	
 	private Client() throws Exception {
 		group = AsynchronousChannelGroup.withThreadPool(Executors.newSingleThreadExecutor());
 	}
@@ -32,8 +57,8 @@ public class Client {
 			System.out.println("Failed to connect");
 		}
 		
-		Thread.sleep(1000);
-
+		client.read(readBuffer, readBuffer, receiveHandler);
+		
 	}
 	public void Disconnect() {
 		running = false;
@@ -48,15 +73,16 @@ public class Client {
 		
 		System.out.print("> ");
 		String message = reader.nextLine();
-		ByteBuffer buffer = ByteBuffer.wrap(message.getBytes());
+		ByteBuffer buffer = game.Engine.EncodeString(message);
 
 		int bytesSent = client.write(buffer).get();
-		if (bytesSent != -1) {
-			System.out.println("Sent " + bytesSent + " bytes");
-		} else {
+		if (bytesSent == -1) {
 			System.out.println("Failed to send data");
 			Disconnect();
 		}
+		
+		// Give server some time to respond => nicer console output 
+		Thread.sleep(100);
 	}
 
 	public static void main(String[] args) {

@@ -69,8 +69,8 @@ public class Server {
 	private void ServerLoop() throws Exception {
 		System.out.println("Waiting for connection");
 		try {
-			AsynchronousSocketChannel socket = AsynchronousSocketChannel.open(group);
-			socket = acceptor.accept().get();
+			//AsynchronousSocketChannel socket = AsynchronousSocketChannel.open(group);
+			AsynchronousSocketChannel socket = acceptor.accept().get();
 			
 			System.out.println("Incoming connection from " + socket.getRemoteAddress());
 			connections.put(++connectionCounter, new Connection(connectionCounter, socket));

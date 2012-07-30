@@ -5,6 +5,8 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.nio.charset.*;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
 public class Connection {
@@ -17,16 +19,23 @@ public class Connection {
 	private final int id;
 
 	private ByteBuffer receiveBuffer;
+	private Queue<String> messageQueue = new LinkedList<String>();
 
 	CompletionHandler<Integer, ByteBuffer> receiveHandler = new CompletionHandler<Integer, ByteBuffer>() {
 		@Override
 		public void completed(Integer result, ByteBuffer attachment) {
-			attachment.flip();
-			byte[] array = new byte[result];
-			attachment.get(array, 0, result);
-			System.out.println("Received " + result + " bytes: '" + new String(array) + "'");
+			if (result == -1) {
+				Server.instance.DropClient(id);
+				return;
+			}
 
+			attachment.flip();
+			String message = game.Engine.DecodeString(attachment);
+			System.out.println("Received " + result + " bytes: '" + message + "'");
+			attachment.clear();
+	
 			StartReceive();
+			Send(message);
 		}
 
 		@Override
@@ -50,12 +59,15 @@ public class Connection {
 	CompletionHandler<Integer, Object> writeHandler = new CompletionHandler<Integer, Object>() {
 		@Override
 		public void completed(Integer result, Object attachment) {
-			System.out.println("Sent successfully");
+			System.out.println("Sent " + result + " bytes");
+			if (!messageQueue.isEmpty()) {
+				StartWrite();
+			}
 		}
 
 		@Override
 		public void failed(Throwable exc, Object attachment) {
-			System.out.println("Failed to send");
+			System.out.println("Failed to send data:" + exc.toString());
 			Server.instance.DropClient(id);
 		}
 	};
@@ -76,16 +88,20 @@ public class Connection {
 		} catch (Exception e) {}
 	}
 	
-	private void StartWrite(ByteBuffer buffer)
-		{ socket.write(buffer, timeout, timeunit, null, writeHandler); }
+	private void StartWrite() 
+		{ socket.write(game.Engine.EncodeString(messageQueue.poll()), timeout, timeunit, null, writeHandler); }
 	
-	private void StartReceive() { 
-		receiveBuffer.clear();
-		socket.read(receiveBuffer, timeout, timeunit, receiveBuffer, receiveHandler); 
-	}
+	private void StartReceive() 
+		{ socket.read(receiveBuffer, timeout, timeunit, receiveBuffer, receiveHandler); }
 	
-	public void Send(String message) throws CharacterCodingException {
-		StartWrite(game.Engine.EncodeString(message));
+	public void Send(String message) {
+		boolean writeInProgress = !messageQueue.isEmpty();
+		messageQueue.add(message);
+		
+		// Only one write per channel is possible
+		if (!writeInProgress) {
+			StartWrite();
+		}
 	}
 	
 	public boolean IsConnected() {

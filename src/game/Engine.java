@@ -11,17 +11,29 @@ public class Engine {
 	
 	// encoder.onUnmappableCharacter(CodingErrorAction.IGNORE);
 	
-	public static String DecodeString(ByteBuffer buffer) throws CharacterCodingException {
+	public static String DecodeString(ByteBuffer buffer) {
 		decoder.reset();
 		
-		return decoder.decode(buffer).toString();
+		try {
+			return decoder.decode(buffer).toString();
+		} catch (CharacterCodingException e) {
+			e.printStackTrace();
+		}
 		
+		return null;
 	}
 
-	public static ByteBuffer EncodeString(String str) throws CharacterCodingException {
+	public static ByteBuffer EncodeString(String str) {
 		encoder.reset();
 		
-		return encoder.encode(CharBuffer.wrap(str));
+		try {
+			ByteBuffer result = encoder.encode(CharBuffer.wrap(str));
+			return result;
+		} catch (CharacterCodingException e) {
+			e.printStackTrace();
+		}
+		
+		return null;
 	}
 	
 }
