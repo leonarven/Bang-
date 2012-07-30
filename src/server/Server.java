@@ -67,30 +67,13 @@ public class Server {
 	}
 	
 	private void ServerLoop() throws Exception {
-		
+		System.out.println("Waiting for connection");
 		try {
 			AsynchronousSocketChannel socket = AsynchronousSocketChannel.open(group);
-			
 			socket = acceptor.accept().get();
 			
 			System.out.println("Incoming connection from " + socket.getRemoteAddress());
-			
-			ByteBuffer buffer = ByteBuffer.allocate(CAPACITY);
-			while (true) {
-				int receivedBytes = socket.read(buffer).get();
-				if (receivedBytes != -1) {
-					buffer.flip();
-					System.out.println("Received " + receivedBytes + " bytes: '" + new String(buffer.array(), 0, receivedBytes) + "'");
-				} else {
-					System.out.println("Failed to receive data");
-					break;
-				}
-				
-				buffer.clear();
-			}
-			
-			//connections.put(++connectionCounter, new Connection(connectionCounter, socket));
-			//System.out.println("Connection completed from: " + connections.get(connectionCounter).GetRemoteAddress().toString());
+			connections.put(++connectionCounter, new Connection(connectionCounter, socket));
 
 		} catch ( Exception e ) {
 

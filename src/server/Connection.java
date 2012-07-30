@@ -8,7 +8,7 @@ import java.nio.charset.*;
 import java.util.concurrent.TimeUnit;
 
 public class Connection {
-	public static final int BUFFER_SIZE = 512;
+	public static final int BUFFER_SIZE = 1024;
 	
 	public static int 		timeout 	= 100;
 	public static TimeUnit 	timeunit 	= TimeUnit.SECONDS;
@@ -21,12 +21,11 @@ public class Connection {
 	CompletionHandler<Integer, ByteBuffer> receiveHandler = new CompletionHandler<Integer, ByteBuffer>() {
 		@Override
 		public void completed(Integer result, ByteBuffer attachment) {
-			byte[] bytearray = new byte[attachment.remaining()];
-			attachment.get(bytearray);
-			System.out.println("Received " + result + " bytes: " + new String(bytearray));
-			
-			// FIXME: Can this cause stack overflow? 
-			// - Yes.
+			attachment.flip();
+			byte[] array = new byte[result];
+			attachment.get(array, 0, result);
+			System.out.println("Received " + result + " bytes: '" + new String(array) + "'");
+
 			StartReceive();
 		}
 
@@ -80,8 +79,10 @@ public class Connection {
 	private void StartWrite(ByteBuffer buffer)
 		{ socket.write(buffer, timeout, timeunit, null, writeHandler); }
 	
-	private void StartReceive()
-		{ socket.read(receiveBuffer, timeout, timeunit, receiveBuffer, receiveHandler); }
+	private void StartReceive() { 
+		receiveBuffer.clear();
+		socket.read(receiveBuffer, timeout, timeunit, receiveBuffer, receiveHandler); 
+	}
 	
 	public void Send(String message) throws CharacterCodingException {
 		StartWrite(game.Engine.EncodeString(message));
