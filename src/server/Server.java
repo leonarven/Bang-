@@ -23,7 +23,7 @@ public class Server {
 	private int connectionCounter = 0;
 	boolean running = true;
 	private HashMap<Integer, Connection> connections;
-
+	
 	private Server(String ip, int port) throws Exception {
 		System.out.println("Initializing server (at " + ip + ":" + port + ") ...");
 

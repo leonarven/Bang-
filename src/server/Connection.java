@@ -8,12 +8,16 @@ import java.nio.charset.*;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
+import java.util.Random;
+import network.*;
 
 public class Connection {
 	public static final int BUFFER_SIZE = 1024;
 	
 	public static int 		timeout 	= 100;
 	public static TimeUnit 	timeunit 	= TimeUnit.SECONDS;
+
+	private Ping ping = new Ping();
 
 	private AsynchronousSocketChannel socket;
 	private final int id;
@@ -33,8 +37,18 @@ public class Connection {
 			String message = game.Engine.DecodeString(attachment);
 			System.out.println("Received " + result + " bytes: '" + message + "'");
 			attachment.clear();
-	
 			StartReceive();
+			
+			//TODO: do own method for handling messages
+			if (message.substring(0, 5) == "PONG ") {
+				if (message.substring(5) == Long.toString(ping.getMagicNumber())) {
+					ping.stop();
+				} else {
+					System.err.println("Wrong PONG -magic number received from client " + id);
+					Server.instance.DropClient(id);
+				}
+			}
+			
 			Send(message);
 		}
 
@@ -44,11 +58,8 @@ public class Connection {
 				
 				System.out.println("Timeout received - better ping the client.");
 				
-				// Ping client...
-				// Restart receiving
-				
-				Server.instance.DropClient(id);
-				
+				ping.start();
+				Send("PING " + ping.getMagicNumber());
 			} else {
 				System.out.println("Failed to receive data: " + exc.toString());
 				exc.printStackTrace();

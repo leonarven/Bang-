@@ -18,7 +18,7 @@ public class Client {
 	public static int		CAPACITY	= 1024;
 
 	final AsynchronousChannelGroup group;
-	AsynchronousSocketChannel client;
+	AsynchronousSocketChannel socket;
 	
 	boolean running = true;
 	
@@ -36,7 +36,13 @@ public class Client {
 			System.out.println("Received " + result + " bytes: '" + message + "'");
 			attachment.clear();
 			
-			client.read(attachment, attachment, this);
+			//TODO: do own method for handling messages
+			if (message.substring(0, 5) == "PING ") {
+				message = "PING " + message.substring(5);
+				Send(message);
+			}
+			
+			socket.read(attachment, attachment, this);
 		}
 
 		@Override
@@ -52,22 +58,38 @@ public class Client {
 	public void Connect(InetSocketAddress address) throws Exception{
 		System.out.println("Connecting to " + address.getAddress() + ":" + address.getPort());
 		
-		client = AsynchronousSocketChannel.open(group);
-		if (client.connect(address).get() != null) {
+		socket = AsynchronousSocketChannel.open(group);
+		if (socket.connect(address).get() != null) {
 			System.out.println("Failed to connect");
 		}
 		
-		client.read(readBuffer, readBuffer, receiveHandler);
+		socket.read(readBuffer, readBuffer, receiveHandler);
 		
 	}
 	public void Disconnect() {
 		running = false;
 		try {
-			client.close();
+			socket.close();
 		} catch (IOException e) {
 			System.out.println("IOException while closing connection");
 		}
 	}
+	
+	private int Send(ByteBuffer buffer) {
+		int bytesSent = -1;
+		try {
+			bytesSent = socket.write(buffer).get();
+			if (bytesSent == -1) {
+				System.err.println("Failed to send data");
+				Disconnect();
+			} 
+		} catch(Exception e) {
+			System.err.println("Cannot send buffer!");
+		}
+		return bytesSent;
+	}
+	private int Send(String buffer)
+		{ return Send(game.Engine.EncodeString(buffer)); }
 
 	private void ClientLoop() throws Exception {
 		
@@ -75,17 +97,18 @@ public class Client {
 		String message = reader.nextLine();
 		ByteBuffer buffer = game.Engine.EncodeString(message);
 
-		int bytesSent = client.write(buffer).get();
-		if (bytesSent == -1) {
-			System.out.println("Failed to send data");
-			Disconnect();
-		}
+		Send(buffer);
 		
 		// Give server some time to respond => nicer console output 
 		Thread.sleep(100);
 	}
 
 	public static void main(String[] args) {
+		System.out.print("Use as server (y/n): ");
+		if (reader.nextLine().charAt(0) == 'y') {
+			server.Server.main(args);
+			return;
+		}
 		System.out.print("Address to connect (" + IP + "): ");
 		String nIp = reader.nextLine();
 		System.out.print("Port to connect (" + PORT + "): ");
