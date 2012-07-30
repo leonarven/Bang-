@@ -9,6 +9,7 @@ import java.util.concurrent.*;
 
 import network.Packet;
 import network.PacketType;
+import network.Ping;
 
 public class Server {
 	public static Scanner reader = new Scanner(System.in);
@@ -43,11 +44,18 @@ public class Server {
 		System.out.println("Listening to " + ip + ":" + port);
 	}
 
-	private void HandlePacket(Packet packet) {
+	public void HandlePacket(Packet packet) {
+		System.out.println("Received packet " + packet.getType() + " " + packet.getFrom() + "->" + packet.getTo() + ":" + packet);
 		switch(packet.getType()) {
 			case CHAT:
 				SendToAll(packet);
-			case ILLEGAL: default:
+			case PING:
+				break;
+			case MSG:
+			default:
+				System.out.println("MSG from client " + packet.getFrom() + ":" + packet);
+				if (true) break; // FIXME
+			case ILLEGAL: 
 				System.err.println("ILLEGAL packet received!");
 		}
 	}

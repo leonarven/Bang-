@@ -34,19 +34,22 @@ public class Client {
 			Packet packet = new Packet(attachment);
 			socket.read(attachment, attachment, this);
 
-			System.out.println("Received packet " + packet.getType() + " " + packet.getFrom() + "->" + packet.getTo() + ":" + packet);
-			
 			HandlePacket(packet);
 		}
 
 		@Override
 		public void failed(Throwable exc, ByteBuffer attachment) {
-			System.out.println("Failed to receive data: " + exc.toString());
+			System.err.println("Failed to receive data: " + exc.toString());
 		}
 	};
 	
 	private void HandlePacket(Packet packet) {
+		System.out.println("Received packet " + packet.getType() + " " + packet.getFrom() + "->" + packet.getTo() + ":" + packet);
 		switch(packet.getType()) {
+			case MSG:
+			case CHAT:
+				System.out.println(packet);
+				break;
 			case PING:
 				Send(packet);
 				break;
@@ -64,7 +67,7 @@ public class Client {
 		
 		socket = AsynchronousSocketChannel.open(group);
 		if (socket.connect(address).get() != null) {
-			System.out.println("Failed to connect");
+			System.err.println("Failed to connect");
 		}
 		
 		socket.read(readBuffer, readBuffer, receiveHandler);
@@ -75,7 +78,7 @@ public class Client {
 		try {
 			socket.close();
 		} catch (IOException e) {
-			System.out.println("IOException while closing connection");
+			System.err.println("IOException while closing connection");
 		}
 	}
 	

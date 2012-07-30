@@ -33,23 +33,20 @@ public class Connection {
 			}
 
 			Packet packet = new Packet(attachment);
-//			if (packet.getFrom() == this.
-			
-			System.out.println("Received packet " + packet.getType() + " " + packet.getFrom() + "->" + packet.getTo() + ":" + packet);
-
 			StartReceive();
 			
-			//TODO: do own method for handling messages
-/*			if (message.substring(0, 5) == "PONG ") {
-				if (message.substring(5) == Long.toString(ping.getMagicNumber())) {
-					ping.stop();
+			Server.instance.HandlePacket(packet);
+
+			if (packet.getType() == PacketType.PING) {
+				if (packet.getData() == ping.getMagicNumber()) {
+					System.out.println("PING correct!");
 				} else {
-					System.err.println("Wrong PONG -magic number received from client " + id);
+					System.err.println("Wrong PING received!");
 					Server.instance.DropClient(id);
 				}
-			}*/
-			
-			Send(packet);
+			} else {
+				Send(packet);
+			}
 		}
 
 		@Override
@@ -57,8 +54,8 @@ public class Connection {
 			if (exc.getClass() == InterruptedByTimeoutException.class) {
 				
 				System.out.println("Timeout received - better ping the client.");
-				
 				Send(ping.start());
+
 			} else {
 				System.out.println("Failed to receive data: " + exc.toString());
 				exc.printStackTrace();
