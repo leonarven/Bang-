@@ -1,12 +1,14 @@
 package network;
 
 public enum PacketType {
-	PING('P'),
-	CHAT('C'),
-	MSG('M'),
+	PING       ('P'),
+	CHAT       ('C'),
+	MSG        ('M'),
 	CLIENT_INFO('I'),
 	SERVER_INFO('S'),
-	ILLEGAL('?');
+	GAME_STATUS('G'),
+	READY      ('R'),
+	ILLEGAL    ('?');
 
 	private PacketType(char c) {
 		this.c = c;
