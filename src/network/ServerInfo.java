@@ -11,9 +11,9 @@ public class ServerInfo extends Packet {
 	}
 	
 	public ServerInfo(int to) {
-		super(PacketType.SERVER_INFO, 0, to, data.array());
+		super(PacketType.SERVER_INFO, 0, to, data);
 	}
-	
+
 	public static void setMOTD(String message) {
 		if (message.length() * 2 > 1024 - 4) {
 			return; // Too long
