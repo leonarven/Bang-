@@ -2,10 +2,18 @@ package game;
 
 import java.util.Collection;
 import java.util.HashMap;
+import org.json.*;
+
 
 public class GameContext {
 	
-	private static HashMap<Integer, Player> players = new HashMap<Integer, Player>();
+	private static HashMap<Integer, Player>    players    = new HashMap<Integer, Player>();
+	private static HashMap<Integer, Card>      cards      = new HashMap<Integer, Card>();
+	private static HashMap<Integer, Character> characters = new HashMap<Integer, Character>();
+
+	public GameContext() {
+		
+	} 
 	
 	public static void Reset() {
 		players.clear();
