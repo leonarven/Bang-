@@ -7,10 +7,10 @@ public class Ping {
 	private long	time;
 	private long	startTime;
 	private boolean	running;
-	private byte[] 	magicNumber;
+	private long 	magicNumber;
 	
 	public Ping() {
-		this.magicNumber = new byte[4];
+		this.magicNumber= -1;
 		this.time		= -1;
 		this.startTime	= -1;
 		this.running	= false;

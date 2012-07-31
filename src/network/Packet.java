@@ -4,46 +4,58 @@ import java.nio.ByteBuffer;
 
 public class Packet {
 	public PacketType type;
-	public int        from;
-	public int        to;
-	public byte[]     data;
-
+	public int from;
+	public int to;
+	public ByteBuffer data;
+	
 	public Packet(ByteBuffer buffer) {
 		buffer.position(0);
 		this.type = PacketType.fromChar(buffer.getChar(0));
 		this.from = buffer.getInt(2);
-		this.to   = buffer.getInt(6);
-
+		this.to = buffer.getInt(6);
+		
 		buffer.position(10);
-		this.data = new byte[buffer.remaining()];
-		buffer.get(data, 0, data.length);
+		byte[] tmp = new byte[buffer.remaining()];
+		buffer.get(tmp, 0, tmp.length);
+		
+		data = ByteBuffer.wrap(tmp);
+		
 		buffer.position(0);
-	} 
+	}
 	
-	public Packet(PacketType type, int from, int to, byte[] data) {
+	public Packet(PacketType type, int from, int to, ByteBuffer data) {
 		this.type = type;
 		this.from = from;
 		this.to   = to;
 		this.data = data;
 	}
-	public Packet(PacketType type, int from, int to, String data) 
-		{ this(type, from, to, data.getBytes()); }
-	public Packet(char type, int from, int to, byte[] data) 
-		{ this(PacketType.fromChar(type), from, to, data); }
-	public Packet(char type, int from, int to, String data) 
+	public Packet(PacketType type, int from, int to, byte[] data)
+		{ this(type, from, to, ByteBuffer.wrap(data)); }
+	public Packet(PacketType type, int from, int to, String data)
 		{ this(type, from, to, data.getBytes()); }
 
+	public Packet(char type, int from, int to, ByteBuffer data)
+	{ this(PacketType.fromChar(type), from, to, data); }
+	public Packet(char type, int from, int to, byte[] data)
+		{ this(PacketType.fromChar(type), from, to, ByteBuffer.wrap(data)); }
+	public Packet(char type, int from, int to, String data)
+		{ this(type, from, to, data.getBytes()); }
+	
+	
 	public ByteBuffer toByteBuffer() {
-		ByteBuffer tmp = ByteBuffer.allocate(10+this.data.length);
+		ByteBuffer tmp = ByteBuffer.allocate(10+this.data.limit());
 		tmp.putChar(this.type.toChar());
 		tmp.putInt(this.from);
 		tmp.putInt(this.to);
-		tmp.put(this.data);
+		
+		this.data.position(0);
+		tmp.put(this.data.array());
 		return tmp;
 	}
 	
 	@Override
 	public String toString() {
-		return new String(this.data);
+		this.data.position(0);
+		return new String(this.data.array());
 	}
 }

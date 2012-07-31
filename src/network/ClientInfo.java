@@ -1,9 +1,30 @@
 package network;
 
-public class ClientInfo {
+import java.nio.ByteBuffer;
 
-	public ClientInfo() {
-		// TODO Auto-generated constructor stub
+public class ClientInfo extends Packet {
+
+	public ClientInfo(ByteBuffer buffer) {
+		super(buffer);
 	}
+	
+	public ClientInfo(int id, String nickname) {
+		super(PacketType.CLIENT_INFO, 0, 0, ByteBuffer.allocate(4 + nickname.length() * 2).putInt(id).put(nickname.getBytes()));
+	}
+	public ClientInfo(int id) {
+		this(id, "Unknown");
+	}
+	
+	public String getNickname() {
+		data.position(4);
+		return new String(data.array());
+	}
+	
+	public int getId() {
+		data.position(0);
+		return data.getInt();	
+	
+	}
+
 
 }

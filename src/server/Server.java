@@ -9,6 +9,7 @@ import java.util.concurrent.*;
 import network.Packet;
 import network.PacketType;
 import network.Ping;
+import network.ServerInfo;
 
 public class Server {
 	public static Scanner reader = new Scanner(System.in);
@@ -21,7 +22,7 @@ public class Server {
 	
 	final AsynchronousChannelGroup group;
 	final AsynchronousServerSocketChannel acceptor;
-	
+
 	private int connectionCounter = 0;
 	boolean running = true;
 	private HashMap<Integer, Connection> connections;
@@ -78,12 +79,17 @@ public class Server {
 	private void ServerLoop() throws Exception {
 		System.out.println("Waiting for connection");
 		try {
-			//AsynchronousSocketChannel socket = AsynchronousSocketChannel.open(group);
 			AsynchronousSocketChannel socket = acceptor.accept().get();
 			
 			System.out.println("Incoming connection from " + socket.getRemoteAddress());
+			
+			// Send information about server:
 			Connection connection = new Connection(++connectionCounter, socket);
-			connection.Send(new Packet(PacketType.SERVER_INFO, 0, connection.getId(), ))
+			connection.Send(new ServerInfo(connectionCounter));
+			for (game.Player p : game.GameContext.getPlayers()) {
+				connection.Send(new network.ClientInfo(p.GetId(), p.getName()));	
+			}
+			
 			connections.put(connection.getId(), connection);
 
 		} catch ( Exception e ) {
