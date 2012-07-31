@@ -3,11 +3,10 @@ package network;
 import java.nio.ByteBuffer;
 
 public class Packet {
-	public PacketType type;
-	public int from;
-	public int to;
-	public ByteBuffer data;
-	
+	public PacketType 	type;
+	public int        	from;
+	public int        	to;
+	public ByteBuffer 	data;
 	public Packet(ByteBuffer buffer) {
 		buffer.position(0);
 		this.type = PacketType.fromChar(buffer.getChar(0));
@@ -43,7 +42,6 @@ public class Packet {
 	public Packet(char type, int from, int to, String data)
 		{ this(type, from, to, data.getBytes()); }
 	
-	
 	public ByteBuffer toByteBuffer() {
 		ByteBuffer tmp = ByteBuffer.allocate(10+this.data.limit());
 		tmp.putChar(this.type.toChar());
@@ -52,7 +50,6 @@ public class Packet {
 		
 		this.data.position(0);
 		tmp.put(this.data.array());
-
 		tmp.position(0);
 		return tmp;
 	}
