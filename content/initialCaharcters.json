@@ -1,82 +1,83 @@
-{
-	1: {
+[
+	{
 	  "name":        "Jesse Jones",
 	  "description": "Hän saa vetää ensimmäisen korttinsa jonkun pelaajan kädestä",
-	  "health":      4
-    }, 
-	2: {
+	  "health":      "4"
+	  "id":          ""
+	}, {
 	  "name":        "Bart Cassady",
 	  "description": "Aina kun häneen osuu, hän vetää kortin",
-	  "health":      4
-	}, 
-	3: {
+	  "health":      "4",
+	  "id":          ""
+	}, {
 	  "name":        "Vulture San",
 	  "description": "Kun pelaaja putoaa pelistä, hän ottaa käteensä kaikki kyseisen pelaajan kortit",
-	  "health":      4
-	}, 
-	4: {
+	  "health":      "4"
+	  "id":          ""
+	}, {
 	  "name":        "Paul Regret",
 	  "description": "Hänen etäistyytensä kaikkiin pelaajiin on yhtä suurempi",
-	  "health":      3
-	}, 
-	5: {
+	  "health":      "3"
+	  "id":          ""
+	}, {
 	  "name":        "Willy The Kid",
 	  "description": "Hän voi pelata rajattoman määrän BANG!-kortteja",
-	  "health":      4
-	}, 
-	6: {
+	  "health":      "4"
+	  "id":          ""
+	}, {
 	  "name":        "Lucky Duke",
 	  "description": "Kun hän \"vetää!\", hän kääntää kaksi korttia ja valitsee niistä yhden",
-	  "health":      4
-	}, 
-	7: {
+	  "health":      "4"
+	  "id":          ""
+	}, {
 	  "name":        "Black Jack",
 	  "description": "Hän näyttää toisen vetämänsä kortin. Jos se on hertta tai ruutu, hän vetää kolmannen kortin",
-	  "health":      4
-	}, 
-	8: {
+	  "health":      "4"
+	  "id":          ""
+	}, {
 	  "name":        "Rose Doolan",
 	  "description": "Kaikkien pelaajien etäisyys häneen on yhtä pienempi",
-	  "health":      4
-	}, 
-	9: {
+	  "health":      "4"
+	  "id":          ""
+	}, {
 	  "name":        "Pedro Ramirez",
 	  "description": "Hän vetää ensimmäisen korttinsa poistopakasta",
-	  "health":      4
-	}, 
-	10: {
+	  "health":      "4"
+	  "id":          ""
+	}, {
 	  "name":        "Suzy Lafayette",
 	  "description": "Kun hänen kätensä tyhjenee, hänv etää heti kortin",
-	  "health":      4
-	}, 
-	11: {
+	  "health":      "4"
+	  "id":          ""
+	}, {
 	  "name":        "Sid Ketchum",
 	  "description": "Hän voi heittää pois 2 korttia saadakseen takaisin yhden elinvoimapisteen",
-	  "health":      4
-	}, 
-	12: {
+	  "health":      "4"
+	  "id":          ""
+	}, {
 	  "name":        "Jourdonnais",
 	  "description": "Aina kun häneen pelataan BANG! -kortti hän saa 'vetää!': jos se on hertta, tulee huti",
-	  "health":      4
-	}, 
-	13: {
+	  "health":      "4"
+	  "id":          ""
+	}, {
 	  "name":        "Kit Carlson",
 	  "description": "Hän katsoo kolmea päällimmäistä korttia ja valitsee niistä 2",
-	  "health":      4
-	}, 
-	14: {
+	  "health":      "4"
+	  "id":          ""
+	}, {
 	  "name":        "El Cringo",
 	  "description": "Kun pelaaja osuu häneen, hän vetää kortin kyseisen pelaajan kädestä",
-	  "health":      3
-	}, 
-	15: {
+	  "health":      "3"
+	  "id":          ""
+	}, {
 	  "name":        "Slab the Killer",
 	  "description": "Hänen BANG! -korttinsa kumoamiseen tarvitaan 2 huti!-korttia",
-	  "health":      4
-	}, 
-	16: {
+	  "health":      "4"
+	  "id":          ""
+	}, {
 	  "name":        "Calamity Janet",
 	  "description": "Hän voi pelata BANG! -kortteja Huti! -kortteina ja päinvastoin",
-	  "health":      4
+	  "health":      "4"
+	  "id":          ""
 	}
-}
+]

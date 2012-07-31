@@ -1,8 +1,6 @@
 package game;
 
-import java.util.Collection;
-import java.util.HashMap;
-import org.json.*;
+import java.util.*;
 
 
 public class GameContext {
@@ -12,7 +10,9 @@ public class GameContext {
 	private static HashMap<Integer, Character> characters = new HashMap<Integer, Character>();
 
 	public GameContext() {
-		
+		JSONContentReader r = new JSONContentReader("content/initialCards.json");
+		System.out.println(r.getValueById("13"));
+		System.err.println(r);
 	} 
 	
 	public static void Reset() {

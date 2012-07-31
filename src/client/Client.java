@@ -69,7 +69,7 @@ public class Client {
 		@Override
 		public void failed(Throwable exc, Object attachment) {
 			System.out.println("Failed to send data:" + exc.toString());
-			Server.instance.DropClient(id);
+			Disconnect();
 		}
 	};	
 
