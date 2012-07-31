@@ -1,5 +1,6 @@
 package network;
 
+import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.Random;
 
@@ -16,9 +17,9 @@ public class Ping {
 		this.running	= false;
 	}
 	public Packet start(int from, int to) {
-		(new Random()).nextBytes(this.magicNumber);
+		this.magicNumber = (new Random()).nextLong();
 
-		Packet packet = new Packet('P', from, to, this.magicNumber);
+		Packet packet = new Packet(PacketType.PING, from, to, ByteBuffer.allocate(8).putLong(magicNumber));
 		
 		this.startTime = (new Date()).getTime();
 		this.running = true;
@@ -33,12 +34,14 @@ public class Ping {
 		this.startTime = -1;
 		this.running = false;
 	}
-	public boolean validate(Packet packet)
-		{ return (packet.getData() == this.magicNumber); }
+	public boolean validate(Packet packet) { 
+		packet.data.position(0);
+		return (packet.data.getLong() == this.magicNumber); 
+	}
 
 	public boolean isRunning()
 		{ return this.running; }
-	public byte[] getMagicNumber()
+	public long getMagicNumber()
 		{ return this.magicNumber; }
 	public long getTime()
 		{ return this.time; }

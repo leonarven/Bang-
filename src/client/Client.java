@@ -16,11 +16,13 @@ import server.Server;
 public class Client {
 	public static Scanner reader = new Scanner(System.in);
 
+	public static int		VERSION		= 0x1;
 	public static int		PORT		= 6667;
 	public static String	IP			= "127.0.0.1";
-	public static int		CAPACITY	= 1024;
+	public static int		BUFFER_SIZE	= 1024;
 	public static int 		timeout 	= 100;
 	public static TimeUnit 	timeunit 	= TimeUnit.SECONDS;
+	public static String	name		= "Unknown";
 
 	public static int		STATUS	= 1024;
 
@@ -33,7 +35,6 @@ public class Client {
 	private Queue<Packet> packetQueue = new LinkedList<Packet>();
 	boolean running = true;
 	
-	ByteBuffer readBuffer = ByteBuffer.allocateDirect(CAPACITY);
 	CompletionHandler<Integer, ByteBuffer> receiveHandler = new CompletionHandler<Integer, ByteBuffer>() {
 		@Override
 		public void completed(Integer result, ByteBuffer attachment) {
@@ -43,9 +44,10 @@ public class Client {
 			}
 			
 			Packet packet = new Packet(attachment);
-			StartReceive();
+			System.out.println("Received packet " + packet.type + " " + packet.from + "->" + packet.to + ":" + packet.data);
+			System.out.println("Received data: " + packet);
 
-			socket.read(attachment, attachment, this);
+			StartReceive();
 
 			HandlePacket(packet);
 		}
@@ -78,7 +80,6 @@ public class Client {
 		{ socket.read(receiveBuffer, timeout, timeunit, receiveBuffer, receiveHandler); }
 
 	private void HandlePacket(Packet packet) {
-		System.out.println("Received packet " + packet.type + " " + packet.from + "->" + packet.to + ":" + packet);
 		switch(packet.type) {
 			case MSG:
 			case CHAT:
@@ -87,6 +88,13 @@ public class Client {
 			case PING:
 				Send(packet);
 				break;
+			case SERVER_INFO:
+				break;
+			case CLIENT_INFO:
+				this.id = new ClientInfo(packet).getId();
+				break;
+			case GAME_STATUS:
+				break;
 			case ILLEGAL: default:
 				System.err.println("ILLEGAL packet received!");
 		}
@@ -94,6 +102,8 @@ public class Client {
 	
 	private Client() throws Exception {
 		group = AsynchronousChannelGroup.withThreadPool(Executors.newSingleThreadExecutor());
+
+		receiveBuffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
 	}
 	
 	public void Connect(InetSocketAddress address) throws Exception{
@@ -104,7 +114,7 @@ public class Client {
 			System.err.println("Failed to connect");
 		}
 		
-		socket.read(readBuffer, readBuffer, receiveHandler);
+		socket.read(receiveBuffer, receiveBuffer, receiveHandler);
 		
 	}
 	public void Disconnect() {
@@ -143,20 +153,6 @@ public class Client {
 	}
 
 	public static void main(String[] args) {
-		Packet p;
-		p = new Packet(PacketType.MSG, 1, 2, "Foobar");
-		System.out.println("packet: " + p.type + " " + p.from + "->" + p.to + ":" + p);
-
-		p = new Packet(PacketType.ILLEGAL, 2, 3, "Foobar".getBytes());
-		System.out.println("packet: " + p.type + " " + p.from + "->" + p.to + ":" + p);
-
-		p = new Packet('a', 3, 4, ByteBuffer.wrap("Foobar".getBytes()));
-		System.out.println("packet: " + p.type + " " + p.from + "->" + p.to + ":" + p);
-
-		p = new Packet('R', 4, 5, ByteBuffer.allocate(1014));
-		System.out.println("packet: " + p.type + " " + p.from + "->" + p.to + ":" + p);
-
-		if(true) return;
 		System.out.print("Use as server (y/n): ");
 		String asServer = reader.nextLine();
 		if (!asServer.isEmpty() && asServer.charAt(0) == 'y') {
@@ -173,13 +169,9 @@ public class Client {
 		
 		try {
 			Client client = new Client();
-			
-/*			ByteBuffer clientInfo;
-			clientInfo.pushInt(VERSION);
-			clientInfo.pushBytes("name".getBytes());
 
-			packetQueue.add(new Packet(PacketType.CLIENT_INFO, 0, 0, clientInfo));
-	*/		
+			client.packetQueue.add(new ClientInfo(VERSION, name));
+			
 			client.Connect(new InetSocketAddress(IP, PORT));
 			
 			

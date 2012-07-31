@@ -20,6 +20,7 @@ public class Connection {
 
 	private AsynchronousSocketChannel socket;
 	private final int id;
+	private int packetSent = 0;
 
 	private ByteBuffer receiveBuffer;
 	private Queue<Packet> messageQueue = new LinkedList<Packet>();
@@ -108,13 +109,14 @@ public class Connection {
 		{ socket.read(receiveBuffer, timeout, timeunit, receiveBuffer, receiveHandler); }
 	
 	public void Send(Packet packet) {
-		System.out.println("Sending packet " + packet.type + " " + packet.from + "->" + packet.to + ":" + packet);
+		System.out.println("Sending packet " + packet.type + " " + packet.from + "->" + packet.to + ":" + packet.data);
 		boolean writeInProgress = !messageQueue.isEmpty();
 		messageQueue.add(packet);
 		
 		// Only one write per channel is possible
 		if (!writeInProgress) {
 			StartWrite();
+			packetSent++;
 		} else {
 			System.out.println("Pushing to queue.");
 		}

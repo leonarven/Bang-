@@ -46,8 +46,12 @@ public class Server {
 	public void HandlePacket(Packet packet) {
 		System.out.println("Received packet " + packet.type + " " + packet.from + "->" + packet.to + ":" + packet);
 		switch(packet.type) {
+			case CLIENT_INFO:
+				
+				break;
 			case CHAT:
 				SendToAll(packet);
+				break;
 			case PING:
 				break;
 			case MSG:
