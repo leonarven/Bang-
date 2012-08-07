@@ -14,10 +14,7 @@ public class Packet {
 		this.to = buffer.getInt(6);
 		
 		buffer.position(10);
-		byte[] tmp = new byte[buffer.remaining()];
-		buffer.get(tmp, 0, tmp.length);
-		
-		data = ByteBuffer.wrap(tmp);
+		data = buffer.slice();
 		
 		buffer.position(0);
 	}
@@ -52,11 +49,5 @@ public class Packet {
 		tmp.put(this.data.array());
 		tmp.position(0);
 		return tmp;
-	}
-	
-	@Override
-	public String toString() {
-		this.data.position(0);
-		return new String(this.data.array());
 	}
 }

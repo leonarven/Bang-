@@ -44,8 +44,7 @@ public class Client {
 			}
 			
 			Packet packet = new Packet(attachment);
-			System.out.println("Received packet " + packet.type + " " + packet.from + "->" + packet.to + ":" + packet.data);
-			System.out.println("Received data: " + packet);
+			System.out.println("Received packet " + packet.type + " " + packet.from + "->" + packet.to);
 
 			StartReceive();
 
@@ -55,8 +54,10 @@ public class Client {
 		@Override
 		public void failed(Throwable exc, ByteBuffer attachment) {
 			System.err.println("Failed to receive data: " + exc.toString());
+			Disconnect();
 		}
 	};
+	
 	CompletionHandler<Integer, Object> writeHandler = new CompletionHandler<Integer, Object>() {
 		@Override
 		public void completed(Integer result, Object attachment) {
@@ -126,24 +127,18 @@ public class Client {
 		}
 	}
 	
-	private int Send(Packet packet) {
-		System.out.println("Sending " + packet);
-		int bytesSent = -1;
-		try {
-			bytesSent = socket.write(packet.toByteBuffer()).get();
-			if (bytesSent == -1) {
-				System.err.println("Failed to send data");
-				Disconnect();
-			} 
-		} catch(Exception e) {
-			System.err.println("Cannot send buffer!");
+	private void Send(Packet packet) {
+		System.out.println("Sending packet " + packet.type + " " + packet.from + "->" + packet.to);
+		boolean writeInProgress = !packetQueue.isEmpty();
+		packetQueue.add(packet);
+		
+		// Only one write per channel is possible
+		if (!writeInProgress) {
+			StartWrite();
 		}
-		return bytesSent;
 	}
 
 	private void ClientLoop() throws Exception {
-		
-		System.out.print("> ");
 		String message = reader.nextLine();
 
 		Send(new Packet('C', 0, 0, message));

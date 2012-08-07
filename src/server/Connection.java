@@ -13,7 +13,7 @@ import network.*;
 
 public class Connection {
 	public static final int BUFFER_SIZE = 1024;
-	public static int 		timeout 	= 100;
+	public static int 		timeout 	= 10;
 	public static TimeUnit 	timeunit 	= TimeUnit.SECONDS;
 
 	private Ping ping = new Ping();
@@ -41,9 +41,9 @@ public class Connection {
 			if (packet.type == PacketType.PING) {
 				if (ping.validate(packet)) {
 					ping.stop();
-					System.out.println("PING correct in time " + ping.getTime() + "!");
+					System.out.println("PING correct in time " + ping.getTime() + "ms");
 				} else {
-					System.err.println("Wrong PING received!");
+					System.err.println("Incorrect PING received!");
 					Server.instance.DropClient(id);
 				}
 			} else {
@@ -56,7 +56,18 @@ public class Connection {
 			if (exc.getClass() == InterruptedByTimeoutException.class) {
 				
 				System.out.println("Timeout received - better ping the client.");
+				
+				/*
+				 * Tää ei toimikkaan niinkuin luulin :(
+				 * Jos lukeminen katkaistaan niin sitä ei voida enää jatkaa
+				 * 
+				 * Dokumentaatiosta:
+				 * "Where a timeout occurs, and the implementation cannot guarantee that bytes have not been read, or will not be read from the 
+				 * channel into the given buffer, then further attempts to read from the channel will cause an unspecific runtime exception to be thrown."
+				 */
+				
 				Send(ping.start());
+				StartReceive();
 
 			} else {
 				System.out.println("Failed to receive data: " + exc.toString());
@@ -109,7 +120,7 @@ public class Connection {
 		{ socket.read(receiveBuffer, timeout, timeunit, receiveBuffer, receiveHandler); }
 	
 	public void Send(Packet packet) {
-		System.out.println("Sending packet " + packet.type + " " + packet.from + "->" + packet.to + ":" + packet.data);
+		System.out.println("Sending packet " + packet.type + " " + packet.from + "->" + packet.to);
 		boolean writeInProgress = !messageQueue.isEmpty();
 		messageQueue.add(packet);
 		
