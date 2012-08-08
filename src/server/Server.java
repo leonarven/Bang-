@@ -1,30 +1,29 @@
 package server;
 
+import game.GameContext;
+import game.Player;
+
 import java.net.*;
-import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-import network.Packet;
-import network.PacketType;
-import network.Ping;
-import network.ServerInfo;
+import network.*;
 
 public class Server {
 	public static Scanner reader = new Scanner(System.in);
-
-	public static Server instance;
 	
-	public static int		PORT		= 6667;
-	public static String	IP			= "127.0.0.1";
-	public static int		BACKLOG		= 10;
+	public static final int 	VERSION 	= 0x1;
+	public static int			PORT		= 6667;
+	public static String		IP			= "127.0.0.1";
+	public static int			BACKLOG		= 10;
+	
+	private boolean running = true;
 	
 	final AsynchronousChannelGroup group;
 	final AsynchronousServerSocketChannel acceptor;
 
 	private int connectionCounter = 0;
-	boolean running = true;
 	private HashMap<Integer, Connection> connections;
 	
 	private Server(String ip, int port) throws Exception {
@@ -43,29 +42,43 @@ public class Server {
 		System.out.println("Listening to " + ip + ":" + port);
 	}
 
-	public void HandlePacket(Packet packet) {
-		System.out.println("Received packet " + packet.type + " " + packet.from + "->" + packet.to + ":" + packet);
-		switch(packet.type) {
-			case CLIENT_INFO:
-				
-				break;
-			case CHAT:
-				SendToAll(packet);
-				break;
-			case PING:
-				break;
-			case MSG:
-			default:
-				System.out.println("MSG from client " + packet.from + ":" + packet);
-				if (true) break; // FIXME
-			case ILLEGAL: 
-				System.err.println("ILLEGAL packet received!");
+	public void HandlePacket(Packet packet, Connection connection) {
+		System.out.println("Received packet " + packet.getType() + " " + packet.getFrom() + "->" + packet.getTo());
+		
+		if (packet.getType() == PacketType.CLIENT_INFO) {
+			
+			if (packet.getInt(0) != VERSION) {
+				System.out.println("Client is using incorrect version " + packet.getInt(0));
+				DropClient(connection.getId());
+			}
+
+			// Client sent correct information -> accept to game
+			
+			System.out.println(packet.getData());
+			
+			String name = packet.getString(4);
+			System.out.println("Name: '" + name + "'");
+			SendToAll(new ClientInfo(connection.getId(), name));
+
+			GameContext.AddPlayer(connection.getId(), name);
+			connection.Send(new ServerInfo(VERSION, connection.getId()));
+			for (Player p : GameContext.getPlayers())
+				connection.Send(new ClientInfo(p));
+			
+			SendToAll(new Packet(PacketType.MSG, 0, 0, "Welcome " + name + "!"));
+			
+		} else {
+			
+			// Don't use packet.getFrom(), use connection.getId()
+			
+			System.out.println("Error: Didn't receive client info, id " + connection.getId());
+			DropClient(connection.getId());
 		}
 	}
 
 	public void SendToAll(Packet packet) {
-		for (Connection c : this.connections.values())
-			c.Send(packet);
+		for (Player p : GameContext.getPlayers())
+			this.connections.get(p.GetId()).Send(packet);
 	}
 	
 	public void DropClient(int id) {
@@ -75,6 +88,9 @@ public class Server {
 			} else {
 				System.out.println("Client has dc'd");
 			}
+			
+			if (GameContext.getPlayer(id) != null)
+				GameContext.RemovePlayer(id);
 			
 			connections.remove(id);
 		}
@@ -87,14 +103,14 @@ public class Server {
 			
 			System.out.println("Incoming connection from " + socket.getRemoteAddress());
 			
-			// Send information about server:
-			Connection connection = new Connection(++connectionCounter, socket);
-			connection.Send(new ServerInfo(connectionCounter));
-			for (game.Player p : game.GameContext.getPlayers()) {
-				connection.Send(new network.ClientInfo(p.GetId(), p.getName()));	
-			}
-			
+			Connection connection = new Connection(++connectionCounter, socket, this);
 			connections.put(connection.getId(), connection);
+			
+			
+			//connection.Send(new ServerInfo(connectionCounter));
+			//for (game.Player p : game.GameContext.getPlayers()) {
+			//	connection.Send(new network.ClientInfo(p.GetId(), p.getName()));	
+			//}
 
 		} catch ( Exception e ) {
 
@@ -113,10 +129,10 @@ public class Server {
 		if (!nPort.isEmpty()) PORT = Integer.parseInt(nPort);
 		if (!nIp.isEmpty())   IP = nIp;
 		try {
-			instance = new Server(IP, PORT);
+			Server server = new Server(IP, PORT);
 
-			while (instance.running) {
-				instance.ServerLoop();
+			while (server.running) {
+				server.ServerLoop();
 			}
 		} catch (Exception e) {
 			System.out.print("Fatal exception at Server::main(): ");

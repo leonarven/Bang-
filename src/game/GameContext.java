@@ -18,14 +18,21 @@ public class GameContext {
 	public static void Reset() {
 		players.clear();
 	}
-
+	
+	public static void AddPlayer(Player player) 
+		{ players.put(player.GetId(), player); }
+	
 	public static Player AddPlayer(int id, String name) {
 		Player player = new Player(id, name);
-		players.put(id, player);
+		AddPlayer(player);
 		return player;
+	}
+	
+	public static void RemovePlayer(int id) {
+		players.remove(id);
 	}
 
 	public static Collection<Player> getPlayers() { return players.values(); }
-	public static Player	GetPlayer(int id)	{ return players.get(id); }
-	public static int		GetPlayerCount()	{ return players.size(); }
+	public static Player	getPlayer(int id)	{ return players.get(id); }
+	public static int		getPlayerCount()	{ return players.size(); }
 }

@@ -1,17 +1,16 @@
 package network;
 
+import game.Engine;
+
 import java.nio.ByteBuffer;
 
 public class ServerInfo extends Packet {
-	static final int 	VERSION = 0x1;
 	static String 		MOTD = "Hello client!";
 	
-	public ServerInfo(ByteBuffer buffer) {
-		super(buffer);
-	}
-	
-	public ServerInfo(int to) {
-		super(PacketType.SERVER_INFO, 0, to, ByteBuffer.allocate(4 + MOTD.length() * 2).putInt(VERSION).put(MOTD.getBytes()));
+	public ServerInfo(int version, int to) {
+		super(PacketType.SERVER_INFO, 0, to, ByteBuffer.allocate(4 + MOTD.getBytes(Engine.charset).length));
+		data.putInt(version);
+		data.put(Engine.EncodeString(MOTD));
 	}
 	
 	public static void setMOTD(String message) {
@@ -19,12 +18,10 @@ public class ServerInfo extends Packet {
 	}
 	
 	public String getMOTD() {
-		data.position(4);
-		return new String(data.array());
+		return getString(4);
 	}
 	
 	public int getVersion() {
-		data.position(0);
-		return data.getInt();
+		return getInt(0);
 	}
 }

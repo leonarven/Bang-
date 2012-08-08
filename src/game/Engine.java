@@ -6,31 +6,22 @@ import java.nio.charset.*;
 
 public class Engine {
 	public static Charset charset = Charset.forName("UTF-8");
-	public static CharsetEncoder encoder = charset.newEncoder();
-	public static CharsetDecoder decoder = charset.newDecoder();
-	
-	// encoder.onUnmappableCharacter(CodingErrorAction.IGNORE);
 	
 	public static String DecodeString(ByteBuffer buffer) {
-		decoder.reset();
-		
 		try {
-			return decoder.decode(buffer).toString();
+			return charset.newDecoder().decode(buffer).toString();
 		} catch (CharacterCodingException e) {
-			e.printStackTrace();
+			System.err.println("Failed to decode " + e);
 		}
 		
 		return null;
 	}
 
 	public static ByteBuffer EncodeString(String str) {
-		encoder.reset();
-		
 		try {
-			ByteBuffer result = encoder.encode(CharBuffer.wrap(str));
-			return result;
+			return charset.newEncoder().encode(CharBuffer.wrap(str));
 		} catch (CharacterCodingException e) {
-			e.printStackTrace();
+			System.err.println("Failed to encode " + e);
 		}
 		
 		return null;

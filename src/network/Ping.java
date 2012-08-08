@@ -35,8 +35,7 @@ public class Ping {
 		this.running = false;
 	}
 	public boolean validate(Packet packet) { 
-		packet.data.position(0);
-		return (packet.data.getLong() == this.magicNumber); 
+		return (packet.getLong(0) == this.magicNumber); 
 	}
 
 	public boolean isRunning()

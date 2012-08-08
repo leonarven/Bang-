@@ -4,23 +4,23 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
-import java.nio.charset.*;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
-import java.util.Random;
+
 import network.*;
 
 public class Connection {
 	public static final int BUFFER_SIZE = 1024;
-	public static int 		timeout 	= 10;
+	public static int 		timeout 	= 100;
 	public static TimeUnit 	timeunit 	= TimeUnit.SECONDS;
+	
+	private final Server server;
 
 	private Ping ping = new Ping();
 
 	private AsynchronousSocketChannel socket;
 	private final int id;
-	private int packetSent = 0;
 
 	private ByteBuffer receiveBuffer;
 	private Queue<Packet> messageQueue = new LinkedList<Packet>();
@@ -29,52 +29,46 @@ public class Connection {
 		@Override
 		public void completed(Integer result, ByteBuffer attachment) {
 			if (result == -1) {
-				Server.instance.DropClient(id);
+				server.DropClient(id);
 				return;
 			}
-
-			Packet packet = new Packet(attachment);
-			StartReceive();
 			
-			Server.instance.HandlePacket(packet);
+			System.out.println("Received " + result + " bytes");
 
-			if (packet.type == PacketType.PING) {
+			//attachment.limit(result);
+			Packet packet = new Packet(attachment);
+			
+			// Handle PING internally
+			if (packet.getType() == PacketType.PING) {
 				if (ping.validate(packet)) {
 					ping.stop();
 					System.out.println("PING correct in time " + ping.getTime() + "ms");
 				} else {
 					System.err.println("Incorrect PING received!");
-					Server.instance.DropClient(id);
+					server.DropClient(id);
 				}
 			} else {
-				Send(packet);
+				server.HandlePacket(packet, Connection.this);
 			}
+			
+			StartReceive();
 		}
 
 		@Override
 		public void failed(Throwable exc, ByteBuffer attachment) {
-			if (exc.getClass() == InterruptedByTimeoutException.class) {
-				
-				System.out.println("Timeout received - better ping the client.");
-				
-				/*
-				 * Tää ei toimikkaan niinkuin luulin :(
-				 * Jos lukeminen katkaistaan niin sitä ei voida enää jatkaa
-				 * 
-				 * Dokumentaatiosta:
-				 * "Where a timeout occurs, and the implementation cannot guarantee that bytes have not been read, or will not be read from the 
-				 * channel into the given buffer, then further attempts to read from the channel will cause an unspecific runtime exception to be thrown."
-				 */
-				
-				Send(ping.start());
-				StartReceive();
-
-			} else {
-				System.out.println("Failed to receive data: " + exc.toString());
-				exc.printStackTrace();
-				Server.instance.DropClient(id);
-			}
-		}
+			
+			/*
+			 * Tää ei toimikkaan niinkuin luulin :(
+			 * Jos lukeminen katkaistaan niin sitä ei voida enää jatkaa
+			 * 
+			 * Dokumentaatiosta:
+			 * "Where a timeout occurs, and the implementation cannot guarantee that bytes have not been read, or will not be read from the 
+			 * channel into the given buffer, then further attempts to read from the channel will cause an unspecific runtime exception to be thrown."
+			 */
+			
+			System.out.println("Failed to receive data: " + exc.toString());
+			server.DropClient(id);
+		}	
 	};
 	CompletionHandler<Integer, Object> writeHandler = new CompletionHandler<Integer, Object>() {
 		@Override
@@ -88,49 +82,43 @@ public class Connection {
 		@Override
 		public void failed(Throwable exc, Object attachment) {
 			System.out.println("Failed to send data:" + exc.toString());
-			Server.instance.DropClient(id);
+			server.DropClient(id);
 		}
 	};
 	
-	public Connection(int id, AsynchronousSocketChannel socket) {
+	public Connection(int id, AsynchronousSocketChannel socket, Server server) {
 		this.id = id;
 		this.socket = socket;
+		this.server = server;
 
 		receiveBuffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
-		
-		Send(ping.start());
-
 		StartReceive();
+		
+		SendPing();
 	}
-	
-	protected void finalize() {
-		System.out.println("Finalizing connection: " + id);
-		try {
-			socket.close();
-		} catch (Exception e) {}
-	}
-	
-	public int getId() 
-		{ return this.id; }
-	
+
 	private void StartWrite() 
 		{ socket.write(messageQueue.poll().toByteBuffer(), timeout, timeunit, null, writeHandler); }
-	
 	private void StartReceive() 
 		{ socket.read(receiveBuffer, timeout, timeunit, receiveBuffer, receiveHandler); }
 	
 	public void Send(Packet packet) {
-		System.out.println("Sending packet " + packet.type + " " + packet.from + "->" + packet.to);
+		System.out.println("Sending packet " + packet.getType()  + " " + packet.getFrom() + "->" + packet.getTo());
 		boolean writeInProgress = !messageQueue.isEmpty();
 		messageQueue.add(packet);
 		
 		// Only one write per channel is possible
 		if (!writeInProgress) {
 			StartWrite();
-			packetSent++;
-		} else {
-			System.out.println("Pushing to queue.");
 		}
+	}
+	
+	public void SendPing() {
+		if (ping.isRunning())
+			System.out.println("Warning: ping is still running");
+		
+		// FIXME: Ping is counting while it is in queue
+		Send(ping.start());
 	}
 	
 	public boolean IsConnected() {
@@ -146,4 +134,10 @@ public class Connection {
 		}
 
 	}
+	
+	public long getLatency() 
+		{ return ping.getTime(); }
+	
+	public int getId() 
+		{ return this.id; }
 }
