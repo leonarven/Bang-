@@ -1,0 +1,36 @@
+[
+	{
+        "type": 		"Equipment",
+        "name": 		"Volcanic",
+        "description": 	"Fire unlimited amount of BANGs",
+        "rarity": 		"0.025",
+        "features": [
+        	"BANGlimit": 	"0",
+        	"range": 		"1"
+        ]
+    }, {
+        "type": 		"Equipment",
+        "name": 		"Schofield",
+        "description": 	"",
+        "rarity": 		"0.0375",
+        "features": [
+        	"range": 		"1"
+        ]
+	}, {
+        "type": 		"Equipment",
+        "name": 		"Rev.Carpine",
+        "description": 	"",
+        "rarity": 		"0.025",
+	    "features": [
+        	"range": 		"1"
+        ]
+	}, {
+        "type": 		"Equipment",
+        "name": 		"Remington",
+        "description": 	"",
+        "rarity": 		"0.0125",
+        "features": [
+        	"range": 		"1"
+        ]
+	}
+]

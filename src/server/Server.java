@@ -8,137 +8,95 @@ import java.nio.channels.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-import network.*;
+import network.Packet;
 
 public class Server {
-	public static Scanner reader = new Scanner(System.in);
-	
-	public static final int 	VERSION 	= 0x1;
 	public static int			PORT		= 6667;
-	public static String		IP			= "127.0.0.1";
-	public static int			BACKLOG		= 10;
+	public static int			BACKLOG		= 10; 			// the maximum number of pending connections on the socket.
 	
 	private boolean running = true;
 	
 	final AsynchronousChannelGroup group;
 	final AsynchronousServerSocketChannel acceptor;
-
+	
 	private int connectionCounter = 0;
-	private HashMap<Integer, Connection> connections;
+	private Set<Connection> connections = Collections.newSetFromMap( new ConcurrentHashMap<Connection, Boolean>() );
 	
-	private Server(String ip, int port) throws Exception {
-		System.out.println("Initializing server (at " + ip + ":" + port + ") ...");
-
-		group = AsynchronousChannelGroup.withThreadPool(Executors.newSingleThreadExecutor());
-		acceptor = AsynchronousServerSocketChannel.open(group);
-		acceptor.bind(new InetSocketAddress(ip, port), BACKLOG);
-		
-		if (!acceptor.isOpen()) {
-			System.err.println("Failed to open acceptor");
-		}
-		
-		connections = new HashMap<Integer, Connection>();
-		
-		System.out.println("Listening to " + ip + ":" + port);
+	GameContext game = new GameContext();
+	
+	private Server( int port ) throws Exception {
+		group = AsynchronousChannelGroup.withThreadPool( Executors.newSingleThreadExecutor() );
+		acceptor = AsynchronousServerSocketChannel.open( group );
+		acceptor.bind( new InetSocketAddress( port ), BACKLOG );
 	}
-
-	public void HandlePacket(Packet packet, Connection connection) {
-		System.out.println("Received packet " + packet.getType() + " " + packet.getFrom() + "->" + packet.getTo());
-		
-		if (packet.getType() == PacketType.CLIENT_INFO) {
-			
-			if (packet.getInt(0) != VERSION) {
-				System.out.println("Client is using incorrect version " + packet.getInt(0));
-				DropClient(connection.getId());
-			}
-
-			// Client sent correct information -> accept to game
-			
-			System.out.println(packet.getData());
-			
-			String name = packet.getString(4);
-			System.out.println("Name: '" + name + "'");
-			SendToAll(new ClientInfo(connection.getId(), name));
-
-			GameContext.AddPlayer(connection.getId(), name);
-			connection.Send(new ServerInfo(VERSION, connection.getId()));
-			for (Player p : GameContext.getPlayers())
-				connection.Send(new ClientInfo(p));
-			
-			SendToAll(new Packet(PacketType.MSG, 0, 0, "Welcome " + name + "!"));
-			
+	
+	private void startAcceptConnection() {
+		 acceptor.accept(null, new CompletionHandler<AsynchronousSocketChannel,Void>() {
+		      public void completed(AsynchronousSocketChannel socket, Void att) {
+		    	  handleNewConnection( new Connection( ++connectionCounter, socket, Server.this ) );
+		          acceptor.accept(null, this); // accept the next connection
+		      }
+		      public void failed(Throwable exc, Void att) {
+		    	  System.err.println( exc.getMessage() );
+		    	  exc.printStackTrace( System.err );
+		      }
+		  });
+	}
+	
+	private void handleNewConnection( Connection connection ) {
+		// Don't accept new connections after game has started.
+		if ( !game.isRunning() ) {
+			connections.add( connection );
+			game.addPlayer( new Player( connection.getId() ));
+			// TODO: Send info to clients?
 		} else {
-			
-			// Don't use packet.getFrom(), use connection.getId()
-			
-			System.out.println("Error: Didn't receive client info, id " + connection.getId());
-			DropClient(connection.getId());
+			// TODO: don't allow connection
+
 		}
 	}
-
-	public void SendToAll(Packet packet) {
-		for (Player p : GameContext.getPlayers())
-			this.connections.get(p.GetId()).Send(packet);
-	}
 	
-	public void DropClient(int id) {
-		if (connections.containsKey(id)) {
-			if (connections.get(id).IsConnected()) {
-				System.out.println("Dropping client from: " + connections.get(id).GetRemoteAddress().toString());
-			} else {
-				System.out.println("Client has dc'd");
+	private void serverLoop() {
+		for ( Connection c : connections ) {
+			if ( !c.isConnected() ) {
+				dropConnection( c );
+				continue;
 			}
 			
-			if (GameContext.getPlayer(id) != null)
-				GameContext.RemovePlayer(id);
-			
-			connections.remove(id);
+			// Client should send keep-alive messages. receive has timeout value.
+			if ( c.hasReceivedData() ) {
+				Packet packet = c.receive();
+				// TODO: forward packet to game or lobby class
+			}
 		}
 	}
 	
-	private void ServerLoop() throws Exception {
-		System.out.println("Waiting for connection");
-		try {
-			AsynchronousSocketChannel socket = acceptor.accept().get();
-			
-			System.out.println("Incoming connection from " + socket.getRemoteAddress());
-			
-			Connection connection = new Connection(++connectionCounter, socket, this);
-			connections.put(connection.getId(), connection);
-			
-			
-			//connection.Send(new ServerInfo(connectionCounter));
-			//for (game.Player p : game.GameContext.getPlayers()) {
-			//	connection.Send(new network.ClientInfo(p.GetId(), p.getName()));	
-			//}
-
-		} catch ( Exception e ) {
-
-			System.out.print("Fatal exception as Server::ServerLoop(): ");
-			System.err.println(e);
-			e.printStackTrace();
+	public void dropConnection( Connection c ) {
+		System.out.println( "Dropping connection #" + c.getId() );
+		
+		if ( connections.contains( c )) {
+			connections.remove( c );
 		}
+		
+		// c.Send( "Disconnected" ); ???
+
+		// TODO: Send message to other clients?
 	}
 	
 	public static void main(String[] args) {
-		System.out.print("Address to listen (" + IP + "): ");
-		String nIp = reader.nextLine();
-		System.out.print("Port to listen (" + PORT + "): ");
-		String nPort = reader.nextLine();
-
-		if (!nPort.isEmpty()) PORT = Integer.parseInt(nPort);
-		if (!nIp.isEmpty())   IP = nIp;
+		
+		// TODO: Read settings from config file...
+		
 		try {
-			Server server = new Server(IP, PORT);
+			Server server = new Server( PORT);
+			server.startAcceptConnection();
 
-			while (server.running) {
-				server.ServerLoop();
+			while ( server.running ) {
+				server.serverLoop();
 			}
 		} catch (Exception e) {
 			System.out.print("Fatal exception at Server::main(): ");
 			System.err.println(e);
 			e.printStackTrace();
 		}
-		reader.close();
 	}
 }

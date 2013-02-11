@@ -1,78 +1,45 @@
 package network;
 
-import game.Engine;
-
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharsetEncoder;
 
 public class Packet {
+	public static Charset charset = Charset.forName("UTF-8");
+	private static CharsetEncoder encoder = charset.newEncoder();
+	private static CharsetDecoder decoder = charset.newDecoder();
+	private static final Object encoderLock = new Object();
+	private static final Object decoderLock = new Object();
+	
 	private PacketType 	type;
-	private int        	from;
-	private int        	to;
-	protected ByteBuffer data;
+	private String 		message;
 	
 	public Packet(ByteBuffer buffer) {
 		buffer.position(0);
 		this.type = PacketType.fromChar(buffer.getChar(0));
-		this.from = buffer.getInt(2);
-		this.to = buffer.getInt(6);
 		
-		buffer.position(10);
-		data = buffer.slice();
-		
-		buffer.position(0);
+		// Would it be better to have multiple instances of encoder/decoder?
+		synchronized( decoderLock ) {
+			try {	
+				this.message = decoder.decode( buffer ).toString();
+			} catch (CharacterCodingException e) {
+				System.err.println( "Failed to decode packet: " + e.getMessage() );
+			}
+		}
 	}
-	
-	protected Packet() {}
-	
-	public Packet(PacketType type, int from, int to, ByteBuffer data) {
-		this.type = type;
-		this.from = from;
-		this.to   = to;
-
-		data.position(0);
-		this.data = data;
-	}
-
-	public Packet(char type, int from, int to, ByteBuffer data)
-		{ this(PacketType.fromChar(type), from, to, data); }
-
-	public Packet(PacketType type, int from, int to, String data)
-		{ this(type, from, to, Engine.EncodeString(data)); }
-	
-	public Packet(char type, int from, int to, String data)
-		{ this(PacketType.fromChar(type), from, to, data); }
-	
-	public PacketType getType()
-		{ return type; }
-	public int getFrom()
-		{ return this.from; }
-	public int getTo()
-		{ return this.to; }
-	public ByteBuffer getData()
-		{ return this.data; }
-	
-	public String getString(int index) { 
-		data.position(index);
-		return Engine.DecodeString(data); 
-	}
-	
-	public int getInt(int index)
-		{ return data.getInt(index); }
-	
-	public long getLong(int index)
-		{ return data.getLong(index); }
 	
 	public ByteBuffer toByteBuffer() {
-		ByteBuffer tmp = ByteBuffer.allocate(10+this.data.limit());
-		// Header
-		tmp.putChar(this.type.toChar());
-		tmp.putInt(this.from);
-		tmp.putInt(this.to);
-		// Data
-		this.data.position(0);
-		tmp.put(data);
-		tmp.position(0);
-		
-		return tmp;
+		synchronized( encoderLock ) {
+			try {
+				// Only send utf-8 encoded data...?
+				return encoder.encode( CharBuffer.wrap( type.toChar() + message ));
+			} catch (CharacterCodingException e) {
+				System.err.println( "Failed to encode packet: " + e.getMessage() );
+				return null;
+			}
+		}
 	}
 }
