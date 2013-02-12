@@ -2,6 +2,7 @@ package game;
 
 import java.util.TreeMap;
 
+//This class should only have datastructures and functions that are usefull to both client and server.
 public class Card {
 	private CardType type;
 	private TreeMap<Integer, Integer> data = new TreeMap<Integer, Integer>(); // Esim. aseen kantama

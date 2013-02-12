@@ -7,16 +7,16 @@ public enum PacketType {
 	SERVER_INFO('S'),
 	ILLEGAL    ('?');
 
+	private final char c;
+	
 	private PacketType(char c) {
 		this.c = c;
 	}
-	
-	private final char c;
 
 	public char toChar() {
 		return this.c;
 	}
-	
+
 	public static PacketType fromChar(char c) {
 		switch(c) {
 			case 'P': return PING;

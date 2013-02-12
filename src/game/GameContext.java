@@ -4,15 +4,21 @@ import java.util.*;
 
 import game.Player;
 
-
+// This class should only have datastructures and functions that are usefull to both client and server.
 public class GameContext {
 	private boolean isRunning = false;
 	
-	private HashMap<Integer, Player> players;
+	private HashMap<Integer, Player> players = new HashMap<Integer, Player>();
+	private LinkedList<Card> discardPile = new LinkedList<Card>();
 	
 	public GameContext() {
-		players = new HashMap<Integer, Player>();
+
 	
+	}
+	
+	public void reset() {
+		players.clear();
+		discardPile.clear();
 	}
 	
 	public void addPlayer( Player player ) {
@@ -24,6 +30,9 @@ public class GameContext {
 	Player getPlayer( int id ) 
 		{ return players.get( id ); }
 	
+	public boolean hasPlayer( int id )
+		{ return players.containsKey( id ); }
+	
 	public int getPlayerCount() 
 		{ return players.size(); }
 	
@@ -32,4 +41,5 @@ public class GameContext {
 	
 	void start() 
 		{ this.isRunning = true; }
+
 }

@@ -27,28 +27,36 @@ public class Connection {
 		this.socket = socket;
 		this.server = server;
 		
+		// Allocate once for big packet. When packet is received, 
+		// copy the relevant information from the buffer.
 		startRead( ByteBuffer.allocateDirect(BUFFER_SIZE) );
 	}
 	
 	private void startRead( ByteBuffer receiveBuffer ) {
+		// This might have some bugs. see: https://en.wikipedia.org/wiki/Producer-consumer_problem
 		socket.read( receiveBuffer, timeout, timeunit, receiveBuffer, new CompletionHandler<Integer, ByteBuffer>() {
 			@Override
 			public void completed(Integer result, ByteBuffer attachment) { 
 				if ( result > 0 ) {
 					
-					inQueue.add( new Packet( attachment ) );
-					
-					// ReceiveBuffer might get modified right after this function
-					Connection.this.startRead( attachment );
+					// Packet ctor makes a copy of ByteBuffers data 
+					// so it can be modified after this:
+					inQueue.add( new Packet( attachment ) ); // Assuming main thread consumes packets faster than they are received
+
 				} else {
-					Connection.this.server.dropConnection( Connection.this );
+					System.err.println( "Invalid result from read: " + result );
+					//Connection.this.server.dropConnection( Connection.this );
 				}
+				
+				attachment.clear();					
+				Connection.this.startRead( attachment );
 			}
 
 			@Override
 			public void failed(Throwable exc, ByteBuffer attachment) {
 				try {
-					System.err.println("Failed to send data:" + exc.toString());
+					System.err.println( "Failed to read data:" + exc.toString() );
+					Connection.this.socket.close();
 					Connection.this.server.dropConnection( Connection.this );
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -69,6 +77,7 @@ public class Connection {
 				public void failed( Throwable exc, Object attachment ) {
 					try {
 						System.err.println("Failed to send data:" + exc.toString());
+						Connection.this.socket.close();
 						Connection.this.server.dropConnection( Connection.this );
 					} catch ( Exception e ) {
 						e.printStackTrace();
@@ -91,8 +100,12 @@ public class Connection {
 	public boolean hasReceivedData() 
 		{ return inQueue.isEmpty(); }
 	
-	// Allways check if return value is null
-	public Packet receive()
+	// Warning: This function is blocking if there is no data in the queue
+	public Packet receiveBlocking() throws InterruptedException
+		{ return inQueue.take(); }
+	
+	// This function returns null if there is no data in the queue
+	public Packet receive() 
 		{ return inQueue.poll(); }
 
 	public InetSocketAddress getRemoteAddress() {
