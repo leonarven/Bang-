@@ -1,16 +1,15 @@
 package server;
 
-import game.GameContext;
-import game.Player;
 import server.Game;
 
+import java.io.IOException;
 import java.net.*;
 import java.nio.channels.*;
 import java.util.*;
 import java.util.concurrent.*;
 
 import network.Packet;
-import network.PacketType;
+import network.ServerInfo;
 
 public class Server {
 	public static int			PORT		= 6667;
@@ -39,8 +38,10 @@ public class Server {
 			public void completed(AsynchronousSocketChannel socket, Void att) {		          
 	    		// Don't accept new connections if game is running or there is enough players alreayd
 				if ( !Server.this.game.isRunning() && Server.this.game.getPlayerCount() <= Server.this.game.getMaxPlayers() ) {
-			    	connections.add( new Connection( ++connectionCounter, socket, Server.this ));
-			    	//FIXME: send server info packet!!
+					Connection c = new Connection( ++connectionCounter, socket, Server.this );
+					System.out.println( "New connection, id: " + c.getId() );
+					c.send((new ServerInfo(c.getId(), game.getMinPlayers(), game.getMaxPlayers())).toPacket());
+					connections.add( c );
 			    }
 		    	  
 		    	acceptor.accept(null, this); // accept the next connection
@@ -79,8 +80,11 @@ public class Server {
 		}
 
 		if ( c.isConnected() ) {	
-			// How Java GC works?
-			// c.Send( "Disconnected" ); would this work???
+			try {
+				c.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}		
 	}
 	
@@ -100,7 +104,7 @@ public class Server {
 	}
 	
 	public static void main(String[] args) {
-		
+		System.out.println( "Starting server" );
 		// TODO: Read settings from config file...
 		
 		try {

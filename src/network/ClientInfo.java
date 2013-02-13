@@ -4,10 +4,17 @@ import game.Player;
 
 import java.nio.ByteBuffer;
 
+
+// Packet format:
+//0: 	char 	= PacketType
+//2: 	int 	= from 
+//4... 	String 	= message
+
+
 // Extends message?
-public class ClientInfo {
+public class ClientInfo extends Message {
 	public ClientInfo(int id, String name) {
-		
+		super( PacketType.CLIENT_INFO, id, name );
 	}
 
 	static public Player createPlayer( Packet packet ) {

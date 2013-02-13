@@ -11,8 +11,9 @@ import game.Card;
 import game.Player;
 
 public class Game {
-	private HashMap<Integer, Player> players = new HashMap<Integer, Player>();
-	private LinkedList<Card> discardPile = new LinkedList<Card>();
+	private HashMap<Integer, Player> players = new HashMap<Integer, Player>(); // Synced with client
+	private LinkedList<Card> discardPile = new LinkedList<Card>(); // Synced with client
+	private LinkedList<Card> cardPile = new LinkedList<Card>(); // Client has no information about these
 	
 	private boolean isRunning = false;
 
@@ -28,8 +29,10 @@ public class Game {
 	
 	public void start() { 
 		this.isRunning = true; 
-	
 		
+		System.out.println("Game is starting!");
+
+		// Remove clients who don't have player
 		
 	}
 
@@ -67,8 +70,11 @@ public class Game {
 			// Add player to game if clientinfo packet was correct
 			player = ClientInfo.createPlayer( packet );
 			if ( player.getId() == connection.getId() ) {
-				players.put( connection.getId(), player );
 				server.sendToAll( packet );
+				for (Player p : players.values()) {
+					connection.send(new ClientInfo(p.getId(), p.getName()).toPacket());
+				}
+				players.put( connection.getId(), player );
 			}
 			
 		// Client didn't send the client info packet
@@ -122,6 +128,9 @@ public class Game {
 	public int getPlayerCount() 
 		{ return players.size(); }
 
+	public int getMinPlayers()
+		{ return this.minPlayers; }
+	
 	public int getMaxPlayers() 
-		{ return maxPlayers; }
+		{ return this.maxPlayers; }
 }

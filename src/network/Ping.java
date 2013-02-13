@@ -1,4 +1,4 @@
-package network;
+/*package network;
 
 import java.nio.ByteBuffer;
 import java.util.Date;
@@ -44,4 +44,4 @@ public class Ping {
 		{ return this.magicNumber; }
 	public long getTime()
 		{ return this.time; }
-}
+}*/

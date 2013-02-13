@@ -26,41 +26,40 @@ public class Connection {
 		this.id = id;
 		this.socket = socket;
 		this.server = server;
-		
+	
 		// Allocate once for big packet. When packet is received, 
 		// copy the relevant information from the buffer.
 		startRead( ByteBuffer.allocateDirect(BUFFER_SIZE) );
+	}
+	
+	public void close() throws IOException {
+		this.socket.close();
 	}
 	
 	private void startRead( ByteBuffer receiveBuffer ) {
 		// This might have some bugs. see: https://en.wikipedia.org/wiki/Producer-consumer_problem
 		socket.read( receiveBuffer, timeout, timeunit, receiveBuffer, new CompletionHandler<Integer, ByteBuffer>() {
 			@Override
-			public void completed(Integer result, ByteBuffer attachment) { 
+			public void completed(Integer result, ByteBuffer attachment) {
+				// The result passed to the completion handler is the number of bytes read or -1 
+				// if no bytes could be read because the channel has reached end-of-stream. 
 				if ( result > 0 ) {
-					
 					// Packet ctor makes a copy of ByteBuffers data 
 					// so it can be modified after this:
 					inQueue.add( new Packet( attachment ) ); // Assuming main thread consumes packets faster than they are received
 
+					attachment.clear();					
+					Connection.this.startRead( attachment );
 				} else {
 					System.err.println( "Invalid result from read: " + result );
-					//Connection.this.server.dropConnection( Connection.this );
+					Connection.this.server.dropConnection( Connection.this );
 				}
-				
-				attachment.clear();					
-				Connection.this.startRead( attachment );
 			}
 
 			@Override
 			public void failed(Throwable exc, ByteBuffer attachment) {
-				try {
-					System.err.println( "Failed to read data:" + exc.toString() );
-					Connection.this.socket.close();
-					Connection.this.server.dropConnection( Connection.this );
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+				System.err.println( "Failed to read data: " + exc.toString() );
+				Connection.this.server.dropConnection( Connection.this );
 			}
 		});
 	}
@@ -75,13 +74,8 @@ public class Connection {
 	
 				@Override
 				public void failed( Throwable exc, Object attachment ) {
-					try {
-						System.err.println("Failed to send data:" + exc.toString());
-						Connection.this.socket.close();
-						Connection.this.server.dropConnection( Connection.this );
-					} catch ( Exception e ) {
-						e.printStackTrace();
-					}
+					System.err.println("Failed to send data: " + exc.toString());
+					Connection.this.server.dropConnection( Connection.this );
 				}
 			});
 		}
