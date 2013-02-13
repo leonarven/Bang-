@@ -1,26 +1,56 @@
-package game;{
+package game;
 
 import java.util.LinkedList;
 
-//This class should only have datastructures and functions that are usefull to both client and server.
 public class Player {
-	private final int 	id;					// Pelaaja tietoiseksi id:staan
-	private String 		name;
-	
-	private PlayerType 	type;				// Pelaajahahmon tyyppi
-	private Character 	character;			// Pelaajahahmo
-	private int 		range;				// Etäisyys, jolle voi ampua (päivittyy asekorttivaihdosten yhteydessä)
-	private int 		health;				// "Elkut"
+	private final int id;			// Pelaaja tietoiseksi id:staan
+	private final String name;
+	private String characterName;
+	private boolean dead;			// Kuollut vai ei -> läpikäydäänkö pelaaja
+	private PlayerType type;		// Pelaajahahmon tyyppi
+	private Character character;	// Pelaajahahmo
 	private boolean 	ready;				
+	
+	// Ensisijaiset ("tärkeät") tiedot
+	private int range;				// Etäisyys, jolle voi ampua (päivittyy asekorttivaihdosten yhteydessä)
+	private int health;				// "Elkut"
 	
 	private LinkedList<Card> equipment = new LinkedList<Card>();
 	private LinkedList<Card> handCards = new LinkedList<Card>();
-
+	
+	// Toissijaiset tiedot
+	private int distanceTo;		// --/
+	private int distanceFrom;	// Pelaajan etäisyyksien ero "normaaliin"
+	public void onTurn() {};
+	public void onBang() {};
 	
 	public Player( int id, String name ) {
-		this.id	= id;
-		this.name = name;
-		this.ready = false;
+		this.id			= id;
+		this.name 		= name;
+		this.ready 		= false;
+		
+		// Mun versiossa pelaaja luokka tehdään jo ennen kun peli on alkanu :D
+		// katso src/server/Game.java
+		
+	/*
+		this.range		= 1;
+		this.dead		= false;
+		this.character	= character;
+		
+		if (character != null) {
+			this.health		= character.GetInitialHealth();
+			// Sääntöjen mukainen lisäelämä seriffille
+			if (type == SHERIFF) this.health+=1;
+
+			this.onTurn			= character.onTurn();
+			this.onBang			= character.onBang();
+			
+			this.characterName	= character.GetName();
+
+			this.distanceTo		= character.GetInitialDistanceTo();
+			this.distanceFrom	= character.GetInitialDistanceFrom();
+		}
+		*/
 	}
 	
 	public int			getId()			{ return this.id; }
