@@ -2,6 +2,7 @@ package server;
 
 import game.GameContext;
 import game.Player;
+import server.Game;
 
 import java.net.*;
 import java.nio.channels.*;
@@ -23,7 +24,7 @@ public class Server {
 	private int connectionCounter = 0;
 	private Set<Connection> connections = Collections.newSetFromMap( new ConcurrentHashMap<Connection, Boolean>() );	
 	
-	GameContext game = new GameContext();
+	private Game game;
 	
 	private Server( int port ) throws Exception {
 		
@@ -36,9 +37,10 @@ public class Server {
 		
 		acceptor.accept(null, new CompletionHandler<AsynchronousSocketChannel,Void>() {
 			public void completed(AsynchronousSocketChannel socket, Void att) {		          
-	    		// Don't accept new connections if game is running
-				if ( !Server.this.game.isRunning() ) {
+	    		// Don't accept new connections if game is running or there is enough players alreayd
+				if ( !Server.this.game.isRunning() && Server.this.game.getPlayerCount() <= Server.this.game.getMaxPlayers() ) {
 			    	connections.add( new Connection( ++connectionCounter, socket, Server.this ));
+			    	//FIXME: send server info packet!!
 			    }
 		    	  
 		    	acceptor.accept(null, this); // accept the next connection
@@ -47,6 +49,8 @@ public class Server {
 				System.err.println( "Failed to receive connection: " + exc.getMessage() );
 			}
 		});
+		
+		game = new Game( this );
 	}
 
 	private void serverLoop() {
@@ -60,36 +64,8 @@ public class Server {
 			// https://en.wikipedia.org/wiki/Producer-consumer_problem	
 			// Client should send keep-alive messages. receive has timeout value.
 			if ( c.hasReceivedData() ) {
-				Packet packet = c.receive();
-				if ( game.isRunning() ) {
-					// Players are in game
-
-					//int from = c.getId();
-					//int to = packet.getMessage().getInt();
-
-				} else {
-					if ( packet.getType() == PacketType.CLIENT_INFO ) {
-						// Only works if packet ensures that bytebuffer.hasArray == true
-						game.addPlayer( new Player( c.getId(), new String( packet.getMessage().array() )));
-						sendToAll( packet );
-						// TODO: Send notification to other players
-					} else if ( game.hasPlayer( c.getId() )) {
-						// Players are in lobby waiting for game to begin
-						
-						// Wait for enough players and everyone to get ready...
-						
-						
-						// TODO: When starting a game ( in this order ): 
-						// * Set game.isRunning = true
-						// * Drop all connections that don't have player
-						// *
-
-					} else {
-						dropConnection( c );
-					}
-				}
-
-
+				game.handlePacket( c.receive(), c );
+				
 			}
 		}
 	}
@@ -99,11 +75,8 @@ public class Server {
 		
 		if ( connections.contains( c )) {
 			connections.remove( c );
-			
-
-			// TODO: Send message to other clients?
+			game.removePlayer( c.getId() );
 		}
-
 
 		if ( c.isConnected() ) {	
 			// How Java GC works?
@@ -132,7 +105,6 @@ public class Server {
 		
 		try {
 			Server server = new Server( PORT);
-			server.startAcceptConnection();
 
 			while ( server.running ) {
 				server.serverLoop();

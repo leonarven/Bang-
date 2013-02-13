@@ -1,4 +1,4 @@
-package game;
+package game;{
 
 import java.util.LinkedList;
 
@@ -11,16 +11,20 @@ public class Player {
 	private Character 	character;			// Pelaajahahmo
 	private int 		range;				// Etäisyys, jolle voi ampua (päivittyy asekorttivaihdosten yhteydessä)
 	private int 		health;				// "Elkut"
+	private boolean 	ready;				
 	
 	private LinkedList<Card> equipment = new LinkedList<Card>();
+	private LinkedList<Card> handCards = new LinkedList<Card>();
 
 	
 	public Player( int id, String name ) {
 		this.id	= id;
 		this.name = name;
+		this.ready = false;
 	}
 	
 	public int			getId()			{ return this.id; }
+	public String 		getName() 		{ return this.name; }
 	
 	public PlayerType	getType()		{ return this.type; }
 	public Character	getCharacter()	{ return this.character; }
@@ -30,4 +34,7 @@ public class Player {
 
 	public void setRange(int range)		{ this.range = range; }
 	public void setHealth(int health)	{ this.health = health; }
+	
+	public void 	setReady( boolean ready ) 	{ this.ready = ready; }
+	public boolean 	isReady() 					{ return this.ready; }
 }

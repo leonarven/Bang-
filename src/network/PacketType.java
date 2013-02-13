@@ -5,6 +5,7 @@ public enum PacketType {
 	MSG        ('M'), // Server message is chat with sender = 0
 	CLIENT_INFO('C'),
 	SERVER_INFO('S'),
+	READY	   ('R'),
 	ILLEGAL    ('?');
 
 	private final char c;
@@ -23,6 +24,7 @@ public enum PacketType {
 			case 'C': return CLIENT_INFO;
 			case 'S': return SERVER_INFO;
 			case 'M': return MSG;
+			case 'R': return READY;
 			case '?': default: return ILLEGAL;
 		}
 	}
