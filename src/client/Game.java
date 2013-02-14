@@ -21,13 +21,20 @@ public class Game {
 	}
 	
 	public void handlePacket( Packet packet ) {
+		System.out.println( "DEBUG: PacketType "+packet.getType().toChar()+" readed" );
+
 		if ( packet.getType() == PacketType.CLIENT_INFO) {
 			Player player = ClientInfo.createPlayer( packet );
 			players.put( player.getId(), player );
 			System.out.println(player.getName() + " joined");
 		} else if ( packet.getType() == PacketType.MSG ) {
 			Message message = new Message( packet );
-			System.out.println( "CHAT: " + players.get(message.getSenderId()) + ": " + message.getMessage());
+			if (message.getSenderId() == this.localPlayerId) {
+				// TODO: Oma viesti
+				System.out.println( "CHAT: <self> " + message.getMessage());
+			} else {
+				System.out.println( "CHAT: <" + players.get(message.getSenderId()).getName() + "(#" + message.getSenderId() + ")> " + message.getMessage());
+			}
 		}
 	}
 	

@@ -30,7 +30,7 @@ public class Game {
 	public void start() { 
 		this.isRunning = true; 
 		
-		System.out.println("Game is starting!");
+		System.out.println( "Game is starting!" );
 
 		// Remove clients who don't have player
 		
@@ -43,6 +43,8 @@ public class Game {
 		// Returns null if there is no player with that id
 		Player player = players.get( connection.getId() );
 
+		System.out.println( "DEBUG: PacketType "+packet.getType().toChar()+" readed from #"+connection.getId() );
+
 		if ( this.isRunning() ) {
 			// TODO
 
@@ -52,8 +54,10 @@ public class Game {
 			if ( packet.getType() == PacketType.MSG ) {
 				Message message = new Message( packet );
 				if ( message.getSenderId() == connection.getId() ) {
-					System.out.println( "CHAT " + player.getName() + ": " + message.getMessage() );
+					System.out.println( "CHAT: " + player.getName() + ": " + message.getMessage() );
 					server.sendToAll( packet );
+				} else {
+					// TODO: Jos lähettäjä ei ole kuka väittää
 				}
 			} else if ( packet.getType() == PacketType.READY ) {
 				player.setReady( !player.isReady() );

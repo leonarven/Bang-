@@ -84,6 +84,8 @@ public class Connection {
 	public synchronized void send( Packet packet ) {
 		boolean writeInProgress = !outQueue.isEmpty();
 		outQueue.add( packet  );
+
+		System.out.println("DEBUG: Sending packet ("+packet.getType().toChar()+")");
 		
 		// Only one write per channel is possible
 		if ( !writeInProgress ) {
@@ -92,7 +94,7 @@ public class Connection {
 	}
 
 	public boolean hasReceivedData() 
-		{ return inQueue.isEmpty(); }
+		{ return !inQueue.isEmpty(); }
 	
 	// Warning: This function is blocking if there is no data in the queue
 	public Packet receiveBlocking() throws InterruptedException

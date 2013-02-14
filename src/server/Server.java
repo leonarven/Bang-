@@ -53,6 +53,7 @@ public class Server {
 		    }
 			public void failed(Throwable exc, Void att) {
 				System.err.println( "Failed to receive connection: " + exc.getMessage() );
+				exc.printStackTrace();
 			}
 		});
 		
@@ -70,6 +71,7 @@ public class Server {
 			// https://en.wikipedia.org/wiki/Producer-consumer_problem	
 			// Client should send keep-alive messages. receive has timeout value.
 			if ( c.hasReceivedData() ) {
+				System.out.println( "DEBUG: c(#"+c.getId()+").hasReceivedData()" );
 				game.handlePacket( c.receive(), c );
 				
 			}

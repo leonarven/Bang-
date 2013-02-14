@@ -51,6 +51,7 @@ public class Client {
 			ServerInfo server = new ServerInfo( new Packet( buffer ));
 			localPlayer = server.getId();
 			game = new Game( localPlayer );
+			System.out.println( "DEBUG: SERVER_INFO: v."+server.VERSION );
 		}
 
 		// Start receiving packets in another thread:
@@ -87,6 +88,8 @@ public class Client {
 	private void send(Packet packet) {
 		boolean writeInProgress = !packetQueue.isEmpty();
 		packetQueue.add(packet);
+
+		System.out.println("DEBUG: Sending packet ("+packet.getType().toChar()+")");
 		
 		// Only one write per channel is possible
 		if (!writeInProgress) {
@@ -112,29 +115,31 @@ public class Client {
 	
 	private void startRead( ByteBuffer receiveBuffer ) {
 		receiveBuffer.clear();
+		
+		System.out.println( "DEBUG: Client::startRead("+receiveBuffer.toString()+")" );
+		
 		socket.read( receiveBuffer, timeout, timeunit, receiveBuffer, new CompletionHandler<Integer, ByteBuffer>() {
 			@Override
 			public void completed(Integer result, ByteBuffer attachment) { 
+				System.out.println( "DEBUG: Packet readed ("+result+")");
+				System.out.println( "     : "+attachment.toString());
 				if ( result > 0 ) {
 					// Packet ctor makes a copy of ByteBuffers data 
 					// so it can be modified after this:
 					game.handlePacket(new Packet(attachment));
+
+					Client.this.startRead( attachment );
 				} else {
 					System.err.println( "Invalid result from read: " + result );
 					Client.this.disconnect();
 				}
 								
-				Client.this.startRead( attachment );
 			}
 
 			@Override
 			public void failed(Throwable exc, ByteBuffer attachment) {
-				try {
-					System.err.println( "Failed to read data:" + exc.toString() );
-					Client.this.disconnect();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+				System.err.println( "Failed to read data:" + exc.toString() );
+				Client.this.disconnect();
 			}
 		});
 	}
@@ -165,6 +170,9 @@ public class Client {
 			}
 			
 		} catch (Exception e) {
+			// TODO: Siistimmäksi. Tieto, jos serveriä ei tavoiteta (java.util.concurrent.ExecutionException: java.net.ConnectException)
+			// TODO: Tieto, jos serveri tippuu (java.nio.channels.InterruptedByTimeoutException)
+			
 			System.err.print("Fatal exception at Client::main(): ");
 			System.err.println(e);
 			e.printStackTrace();
