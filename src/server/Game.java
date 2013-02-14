@@ -44,7 +44,7 @@ public class Game {
 		Player player = players.get( connection.getId() );
 
 		if ( this.isRunning() ) {
-			
+			// TODO
 
 
 		// Game has not started: player is in lobby -> wait for everyone to get ready
