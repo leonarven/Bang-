@@ -19,7 +19,7 @@ public class Message {
 		this.message 	= message;
 	}
 
-	protected Message( PacketType type, int id, String message ) {		
+	public Message( PacketType type, int id, String message ) {		
 		this.type 		= type;
 		this.id 		= id;
 		this.message 	= message;

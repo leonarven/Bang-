@@ -56,7 +56,7 @@ public class Client {
 
 		// Start receiving packets in another thread:
 		startRead(buffer);
-		
+
 		send(new ClientInfo(localPlayer, Integer.toString(new Random().nextInt())).toPacket());
 		
 	}
@@ -89,7 +89,8 @@ public class Client {
 		boolean writeInProgress = !packetQueue.isEmpty();
 		packetQueue.add(packet);
 
-		System.out.println("DEBUG: Sending packet ("+packet.getType().toChar()+")");
+		if (packet.getType() != PacketType.PING)
+			System.out.println("DEBUG: Sending packet ("+packet.getType().toChar()+")");
 		
 		// Only one write per channel is possible
 		if (!writeInProgress) {
@@ -112,21 +113,22 @@ public class Client {
 			});
 		}
 	}
-	
+
 	private void startRead( ByteBuffer receiveBuffer ) {
 		receiveBuffer.clear();
-		
-		System.out.println( "DEBUG: Client::startRead("+receiveBuffer.toString()+")" );
 		
 		socket.read( receiveBuffer, timeout, timeunit, receiveBuffer, new CompletionHandler<Integer, ByteBuffer>() {
 			@Override
 			public void completed(Integer result, ByteBuffer attachment) { 
-				System.out.println( "DEBUG: Packet readed ("+result+")");
-				System.out.println( "     : "+attachment.toString());
 				if ( result > 0 ) {
 					// Packet ctor makes a copy of ByteBuffers data 
 					// so it can be modified after this:
-					game.handlePacket(new Packet(attachment));
+					Packet packet = new Packet(attachment);
+					
+					// TODO: Siirrä handlePacketiin
+					if ( packet.getType() == PacketType.PING ) {
+						send(packet);
+					} else game.handlePacket(packet); // Pingia tarvitse käsitellä
 
 					Client.this.startRead( attachment );
 				} else {

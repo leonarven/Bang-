@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.concurrent.*;
 
 import network.Packet;
+import network.PacketType;
 
 public class Connection {
 	public static final int BUFFER_SIZE = 512;
@@ -85,7 +86,8 @@ public class Connection {
 		boolean writeInProgress = !outQueue.isEmpty();
 		outQueue.add( packet  );
 
-		System.out.println("DEBUG: Sending packet ("+packet.getType().toChar()+")");
+		if (packet.getType() != PacketType.PING)
+			System.out.println("DEBUG: Sending packet ("+packet.getType().toChar()+")");
 		
 		// Only one write per channel is possible
 		if ( !writeInProgress ) {

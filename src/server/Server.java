@@ -1,7 +1,6 @@
 package server;
 
 import server.Game;
-
 import java.io.IOException;
 import java.net.*;
 import java.nio.channels.*;
@@ -9,7 +8,9 @@ import java.util.*;
 import java.util.concurrent.*;
 
 import network.Packet;
+import network.PacketType;
 import network.ServerInfo;
+import network.Message;
 
 public class Server {
 	public static int			PORT		= 6667;
@@ -25,13 +26,35 @@ public class Server {
 	
 	private Game game;
 	
+	private class PingLoop implements Runnable {
+		private String currentHash;
+		
+		private void doPing() { 
+//			currentHash = ""+Math.round(Integer.MAX_VALUE * Math.random());
+			currentHash = ""+Math.round(10000 * Math.random() + 100000); // Saman pituiset hashit
+
+			sendToAll((new Message(PacketType.PING, 0, currentHash)).toPacket());
+			// TODO: PING:n vastaanotto
+		}
+	    public void run() {
+	        try {
+	        	while( running ) {
+	        		Thread.sleep(10000);
+	        		doPing();
+	        	}
+	        } catch (InterruptedException e) {
+	        	
+	        }
+	    }
+	};
+	
 	private Server( int port ) throws Exception {
 
 		System.out.println( "Server::Server()" );
 		System.out.println( "Using port "+port );
 
 		// How to do multithreading? 1 thread for network stuff and rest for game logic?
-		int threads = Math.max( Runtime.getRuntime().availableProcessors() - 1, 1 ); // number of threads for connections
+		int threads = Math.max( Runtime.getRuntime().availableProcessors() - 1, 2 ); // number of threads for connections
 		System.out.println( "Using "+threads+" thread"+(threads>1?"s":"") );
 		
 		group = AsynchronousChannelGroup.withThreadPool( Executors.newFixedThreadPool( threads ) );
@@ -56,6 +79,8 @@ public class Server {
 				exc.printStackTrace();
 			}
 		});
+
+		(new Thread(new PingLoop())).start();
 		
 		game = new Game( this );
 	}
@@ -71,9 +96,13 @@ public class Server {
 			// https://en.wikipedia.org/wiki/Producer-consumer_problem	
 			// Client should send keep-alive messages. receive has timeout value.
 			if ( c.hasReceivedData() ) {
-				System.out.println( "DEBUG: c(#"+c.getId()+").hasReceivedData()" );
-				game.handlePacket( c.receive(), c );
-				
+				Packet received = c.receive();
+				if (received .getType() == PacketType.PING) {
+					// TODO: tarkista onko oikea hash
+				} else {
+					System.out.println( "DEBUG: c(#"+c.getId()+").hasReceivedData()" );
+					game.handlePacket( received, c );
+				}
 			}
 		}
 	}
