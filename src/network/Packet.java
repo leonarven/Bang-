@@ -32,7 +32,7 @@ public class Packet {
 		buffer.get( array );
 
 		this.buffer = ByteBuffer.wrap( array );
-		type = PacketType.fromChar( buffer.getChar() );
+		type = PacketType.fromChar( buffer.getChar() ); //FIXME: Kaatuu tällä rivillä
 
 		// Does ByteBuffer.wrap( byte[] ) ensure ByteBuffer.hasArray == true?
 		assert this.buffer.hasArray();

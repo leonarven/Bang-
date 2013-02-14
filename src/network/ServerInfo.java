@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
 //14 	int 	= minPlayers
 
 public class ServerInfo {
+	// FIXME: Miksi versiotieto paketissa?
 	public static final int VERSION = 1;
 	
 	private int id;
@@ -42,6 +43,7 @@ public class ServerInfo {
 	}
 	
 	public Packet toPacket() {
+		// FIXME: Miksi lähtee 144 tavua?
 		ByteBuffer buffer = ByteBuffer.allocate( Character.SIZE + 4 * Integer.SIZE );
 		buffer.putChar( PacketType.SERVER_INFO.toChar() );
 		buffer.putInt( VERSION );

@@ -157,7 +157,8 @@ public class Client {
 
 		try {
 			Client client = new Client();
-			client.connect(new InetSocketAddress(IP, PORT), ByteBuffer.allocateDirect(BUFFER_SIZE));
+			ByteBuffer buffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
+			client.connect(new InetSocketAddress(IP, PORT), buffer);
 			
 			while(client.running) {	
 				client.clientLoop();

@@ -26,20 +26,25 @@ public class Server {
 	private Game game;
 	
 	private Server( int port ) throws Exception {
-		
+
+		System.out.println( "Server::Server()" );
+		System.out.println( "Using port "+port );
+
 		// How to do multithreading? 1 thread for network stuff and rest for game logic?
 		int threads = Math.max( Runtime.getRuntime().availableProcessors() - 1, 1 ); // number of threads for connections
+		System.out.println( "Using "+threads+" thread"+(threads>1?"s":"") );
 		
 		group = AsynchronousChannelGroup.withThreadPool( Executors.newFixedThreadPool( threads ) );
 		acceptor = AsynchronousServerSocketChannel.open( group );
 		acceptor.bind( new InetSocketAddress( port ), BACKLOG );
-		
+
 		acceptor.accept(null, new CompletionHandler<AsynchronousSocketChannel,Void>() {
-			public void completed(AsynchronousSocketChannel socket, Void att) {		          
+			public void completed(AsynchronousSocketChannel socket, Void att) {
+				System.out.println( "New connection!" );
 	    		// Don't accept new connections if game is running or there is enough players alreayd
 				if ( !Server.this.game.isRunning() && Server.this.game.getPlayerCount() <= Server.this.game.getMaxPlayers() ) {
 					Connection c = new Connection( ++connectionCounter, socket, Server.this );
-					System.out.println( "New connection, id: " + c.getId() );
+					System.out.println( "New connection, #" + c.getId() );
 					c.send((new ServerInfo(c.getId(), game.getMinPlayers(), game.getMaxPlayers())).toPacket());
 					connections.add( c );
 			    }
@@ -104,16 +109,20 @@ public class Server {
 	}
 	
 	public static void main(String[] args) {
-		System.out.println( "Starting server" );
+		System.out.println( "BEGIN" );
+		System.out.print( "Reading config file ... " );
 		// TODO: Read settings from config file...
+		System.out.println( "DONE" );
 		
 		try {
+			System.out.println( "Trying to start server ..." );
 			Server server = new Server( PORT);
-
+			System.out.println( "Starting the loop" );
 			while ( server.running ) {
 				server.serverLoop();
 			}
 		} catch (Exception e) {
+			System.out.println( " ERROR" );
 			System.out.print("Fatal exception at Server::main(): ");
 			System.err.println(e);
 			e.printStackTrace();
