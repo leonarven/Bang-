@@ -8,6 +8,7 @@ import network.Message;
 import network.Packet;
 import network.PacketType;
 import game.Card;
+import game.Character;
 import game.Player;
 
 public class Game {
@@ -32,7 +33,9 @@ public class Game {
 		
 		System.out.println( "Game is starting!" );
 
-		// Remove clients who don't have player
+		// TODO: Remove clients who don't have player
+		
+		// TODO: READY-paketti pelaajille, tieto kunkin roolista
 		
 	}
 
@@ -48,7 +51,6 @@ public class Game {
 		if ( this.isRunning() ) {
 			// TODO
 
-
 		// Game has not started: player is in lobby -> wait for everyone to get ready
 		} else if ( player != null ) {
 			if ( packet.getType() == PacketType.MSG ) {
@@ -60,7 +62,18 @@ public class Game {
 					// TODO: Jos lähettäjä ei ole kuka väittää
 				}
 			} else if ( packet.getType() == PacketType.READY ) {
-				player.setReady( !player.isReady() );
+				Message message = new Message( packet );
+				if (message.getMessage() == "0") player.setReady( false );
+				else {
+					player.setReady( true );
+
+					// TODO: message(character_id):n persuteella valikoitu hahmo
+					Character character = new Character("Unknown", 3);
+					player.setCharacter( character );
+					
+					Packet readyPacket = (new Message(PacketType.READY, connection.getId(), message.getMessage())).toPacket();
+					server.sendToAllBut(connection.getId(), readyPacket);
+				}
 				if ( readyToStart() ) {
 					this.start(); // Start game when everyone is ready
 				}

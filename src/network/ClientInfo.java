@@ -11,7 +11,6 @@ import java.nio.ByteBuffer;
 //4... 	String 	= message
 
 
-// Extends message?
 public class ClientInfo extends Message {
 	public ClientInfo(int id, String name) {
 		super( PacketType.CLIENT_INFO, id, name );

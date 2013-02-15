@@ -97,12 +97,13 @@ public class Server {
 			// Client should send keep-alive messages. receive has timeout value.
 			if ( c.hasReceivedData() ) {
 				Packet received = c.receive();
-				if (received .getType() == PacketType.PING) {
+				if (received .getType() != PacketType.PING) {
 					// TODO: tarkista onko oikea hash
 				} else {
+					// TODO: Ei haluta viestitulvaa
 					System.out.println( "DEBUG: c(#"+c.getId()+").hasReceivedData()" );
-					game.handlePacket( received, c );
 				}
+				game.handlePacket( received, c );
 			}
 		}
 	}
@@ -125,11 +126,15 @@ public class Server {
 	}
 	
 	public void sendToAll( Packet packet ) {
-		for ( Connection c : connections ) {
+		for ( Connection c : connections )
 			c.send( packet );
-		}
 	}
-	
+
+	public void sendToAllBut( int dontSend, Packet packet ) {
+		for ( Connection c : connections )
+			if (c.getId() != dontSend) c.send( packet );
+	}
+
 	public void reset() {
 		for ( Connection c : connections ) {
 			dropConnection( c );

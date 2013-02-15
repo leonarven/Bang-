@@ -62,8 +62,13 @@ public class Player {
 	public int			getHealth()		{ return this.health; }
 	public boolean		isDead()		{ return this.health == 0; }
 
-	public void setRange(int range)		{ this.range = range; }
-	public void setHealth(int health)	{ this.health = health; }
+	public void setRange(int range)		{ this.range     = range; }
+	public void setHealth(int health)	{ this.health    = health; }
+	public void setType(PlayerType type){ this.type    = type; }
+	public void setCharacter(Character character) {
+		this.character = character;
+		this.characterName = character.GetName();
+	}
 	
 	public void 	setReady( boolean ready ) 	{ this.ready = ready; }
 	public boolean 	isReady() 					{ return this.ready; }
