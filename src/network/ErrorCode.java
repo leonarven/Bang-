@@ -3,6 +3,7 @@ package network;
 public enum ErrorCode {
 	SERVER_IS_FULL,		// Uusia clienttejä ei huolita
 	INVALID_PACKET,   	// Virheellinen paketti
+	INVALID_USERNAME,	// Nimi on jo käytössä
 	
 	ILLEGAL_MOVE,      	// Laiton siirto
 	ILLEGAL_END,       	// Laiton vuoron lopetus (Liikaa kortteja)

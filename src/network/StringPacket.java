@@ -5,12 +5,12 @@ import java.nio.ByteBuffer;
 public class StringPacket {
 	protected final PacketType type;
 	protected final int 		id;
-	protected final String	message;
+	protected final String	data;
 
 	public StringPacket(PacketType type, int id, String message) {		
 		this.type 		= type;
 		this.id 		= id;
-		this.message 	= message;
+		this.data 	= message;
 	}
 	
 	public StringPacket(Packet packet) throws Exception {
@@ -22,22 +22,22 @@ public class StringPacket {
 
 		this.type 		= PacketType.MSG;
 		this.id 		= buffer.getInt( 2 );
-		this.message 	= new String( buffer.array(), 6, buffer.limit() - 6 );
+		this.data 	= new String( buffer.array(), 6, buffer.limit() - 6 );
 	}
 
 	public PacketType getType() 
 		{ return type; }
 	
-	public int getSenderId() 
+	public int getId() 
 		{ return id; }
 
-	public String getMessage() 
-		{ return message; }
+	public String getData() 
+		{ return data; }
 	
 	// Other packets might need to override this?
 	public Packet toPacket() {
 		
-		byte[] bytes = message.getBytes();
+		byte[] bytes = data.getBytes();
 		ByteBuffer buffer = ByteBuffer.allocate( Character.SIZE + Integer.SIZE + bytes.length ); // FIXME depends on encoding?
 		buffer.putChar( type.toChar() );
 		buffer.putInt( id );
