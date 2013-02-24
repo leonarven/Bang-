@@ -14,7 +14,6 @@ import network.PacketType;
 public class Connection {
 	public static final int BUFFER_SIZE = 512;
 	public static int 		timeout 	= 100;
-	public static TimeUnit 	timeunit 	= TimeUnit.SECONDS;
 	
 	private final Server server;
 	private final AsynchronousSocketChannel socket;
@@ -39,7 +38,7 @@ public class Connection {
 	
 	private void startRead( ByteBuffer receiveBuffer ) {
 		// This might have some bugs. see: https://en.wikipedia.org/wiki/Producer-consumer_problem
-		socket.read( receiveBuffer, timeout, timeunit, receiveBuffer, new CompletionHandler<Integer, ByteBuffer>() {
+		socket.read( receiveBuffer, timeout, TimeUnit.SECONDS, receiveBuffer, new CompletionHandler<Integer, ByteBuffer>() {
 			@Override
 			public void completed(Integer result, ByteBuffer attachment) {
 				// The result passed to the completion handler is the number of bytes read or -1 
@@ -68,7 +67,7 @@ public class Connection {
 	private synchronized void startWrite() {
 		// Keep sending data until outQueue is empty
 		if ( !outQueue.isEmpty() ) {
-			socket.write( outQueue.poll().toByteBuffer(), timeout, timeunit, null, new CompletionHandler<Integer, Object>() {
+			socket.write( outQueue.poll().toByteBuffer(), timeout, TimeUnit.SECONDS, null, new CompletionHandler<Integer, Object>() {
 				@Override
 				public void completed(Integer result, Object attachment) 
 					{ Connection.this.startWrite(); }
@@ -84,10 +83,9 @@ public class Connection {
 	
 	public synchronized void send( Packet packet ) {
 		boolean writeInProgress = !outQueue.isEmpty();
-		outQueue.add( packet  );
+		outQueue.add( packet );
 
-		if (packet.getType() != PacketType.PING)
-			System.out.println("DEBUG: Sending packet ("+packet.getType().toChar()+")");
+		System.out.println("DEBUG: Sending packet ("+packet.getType().toChar()+")");
 		
 		// Only one write per channel is possible
 		if ( !writeInProgress ) {

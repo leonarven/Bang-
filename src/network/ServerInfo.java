@@ -1,64 +1,55 @@
 package network;
 
 import java.nio.ByteBuffer;
+import game.JSONObject;
 
 //Packet format:
 //0: 	char 	= PacketType
-//2: 	int 	= version
-//6 	int 	= client id
-//10 	int 	= maxPlayers
-//14 	int 	= minPlayers
+//2 	int 	= client id
+//6 	string	= json
 
 public class ServerInfo {
 	// FIXME: Miksi versiotieto paketissa?
 	public static final int VERSION = 1;
 	
 	private int id;
-	private int minPlayers;
-	private int maxPlayers;
+	private JSONObject json;
 	
-	public ServerInfo( int id, int minPlayers, int maxPlayers ) {
-		this.id = id;
-		this.minPlayers = minPlayers;
-		this.maxPlayers = maxPlayers;
+	public ServerInfo( JSONObject json ) {
+		this.json = json;
+	}
+	public ServerInfo( Object json ) {
+		this.json = new JSONObject(json);
+	}
+	public ServerInfo( String json ) {
+		this.json = new JSONObject(json);
 	}
 	
 	public ServerInfo( Packet packet ) {		
 		ByteBuffer buffer = packet.toByteBuffer();
 		
-		//TODO:
-		assert buffer.limit() == 14;
+		if ( buffer.limit() <= 6 || PacketType.fromChar(buffer.getChar(0)) != PacketType.SERVER_INFO ) {
+			// TODOThrowSomething();
+		}
 		
 		buffer.position( 2 );
-		int version 	= buffer.getInt();
-		this.id 		= buffer.getInt();
-		this.minPlayers = buffer.getInt();
-		this.maxPlayers = buffer.getInt();
-		
-		assert version == VERSION;
-		
-		if ( version < VERSION ) {
-			// TODO: error here. Throw something?
-		}
+		this.id 	= buffer.getInt();
+		this.json	= new JSONObject(new String( buffer.array(), 6, buffer.limit() - 6 ));
 	}
 	
 	public Packet toPacket() {
 		// FIXME: Miksi lähtee 144 tavua?
-		ByteBuffer buffer = ByteBuffer.allocate( Character.SIZE + 4 * Integer.SIZE );
+		byte[] bytes = json.toString().getBytes();
+		ByteBuffer buffer = ByteBuffer.allocate( Character.SIZE + Integer.SIZE + bytes.length ); // FIXME depends on encoding?
 		buffer.putChar( PacketType.SERVER_INFO.toChar() );
-		buffer.putInt( VERSION );
 		buffer.putInt( id );
-		buffer.putInt( minPlayers );
-		buffer.putInt( maxPlayers );
+		buffer.put( bytes ); // FIXME encodings.
 		return new Packet( PacketType.SERVER_INFO, buffer );
 	}
 	
 	public int getId()
 		{ return this.id; }
 	
-	public int getMinPlayers() 
-		{ return this.minPlayers; }
-	
-	public int getMaxPlayers()	
-		{ return this.maxPlayers; }
+	public JSONObject getJson()	
+		{ return this.json; }
 }

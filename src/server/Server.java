@@ -6,11 +6,12 @@ import java.net.*;
 import java.nio.channels.*;
 import java.util.*;
 import java.util.concurrent.*;
-
+import game.JSONObject;
 import network.Packet;
 import network.PacketType;
 import network.ServerInfo;
 import network.Message;
+
 
 public class Server {
 	public static int			PORT		= 6667;
@@ -25,28 +26,6 @@ public class Server {
 	private Set<Connection> connections = Collections.newSetFromMap( new ConcurrentHashMap<Connection, Boolean>() );	
 	
 	private Game game;
-	
-	private class PingLoop implements Runnable {
-		private String currentHash;
-		
-		private void doPing() { 
-//			currentHash = ""+Math.round(Integer.MAX_VALUE * Math.random());
-			currentHash = ""+Math.round(10000 * Math.random() + 100000); // Saman pituiset hashit
-
-			sendToAll((new Message(PacketType.PING, 0, currentHash)).toPacket());
-			// TODO: PING:n vastaanotto
-		}
-	    public void run() {
-	        try {
-	        	while( running ) {
-	        		Thread.sleep(10000);
-	        		doPing();
-	        	}
-	        } catch (InterruptedException e) {
-	        	
-	        }
-	    }
-	};
 	
 	private Server( int port ) throws Exception {
 
@@ -68,7 +47,15 @@ public class Server {
 				if ( !Server.this.game.isRunning() && Server.this.game.getPlayerCount() <= Server.this.game.getMaxPlayers() ) {
 					Connection c = new Connection( ++connectionCounter, socket, Server.this );
 					System.out.println( "New connection, #" + c.getId() );
-					c.send((new ServerInfo(c.getId(), game.getMinPlayers(), game.getMaxPlayers())).toPacket());
+					
+					JSONObject settings = new JSONObject();
+					settings.put("minPlayers", game.getMinPlayers());
+					settings.put("maxPlayers", game.getMaxPlayers());
+					settings.put("playersCount", game.getPlayerCount());
+					settings.put("version", ServerInfo.VERSION);
+					settings.put("timeout", Connection.timeout);
+					
+					c.send((new ServerInfo(settings)).toPacket());
 					connections.add( c );
 			    }
 		    	  
@@ -80,8 +67,6 @@ public class Server {
 			}
 		});
 
-		(new Thread(new PingLoop())).start();
-		
 		game = new Game( this );
 	}
 
@@ -97,12 +82,12 @@ public class Server {
 			// Client should send keep-alive messages. receive has timeout value.
 			if ( c.hasReceivedData() ) {
 				Packet received = c.receive();
+				
+				// Ei haluta viestitulvaa
 				if (received .getType() != PacketType.PING) {
-					// TODO: tarkista onko oikea hash
-				} else {
-					// TODO: Ei haluta viestitulvaa
 					System.out.println( "DEBUG: c(#"+c.getId()+").hasReceivedData()" );
 				}
+				
 				game.handlePacket( received, c );
 			}
 		}
