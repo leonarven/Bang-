@@ -20,7 +20,7 @@ public class StringPacket {
 			throw new Exception("Invalid packet length");
 		}
 
-		this.type 	= PacketType.MSG;
+		this.type 	= PacketType.fromChar(buffer.getChar( 0 ));
 		this.id 	= buffer.getInt( 2 );
 		this.data 	= new String( buffer.array(), 6, buffer.limit() - 6 );
 	}
