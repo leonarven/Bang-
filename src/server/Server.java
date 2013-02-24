@@ -13,6 +13,7 @@ import network.*;
 public class Server {
 	public static int			PORT		= 6667;
 	public static int			BACKLOG		= 10; 			// the maximum number of pending connections on the socket.
+	public final static int		VERSION		= 1;
 	
 	private boolean running = true;
 	
@@ -49,10 +50,11 @@ public class Server {
 					settings.put("minPlayers", game.getMinPlayers());
 					settings.put("maxPlayers", game.getMaxPlayers());
 					settings.put("playersCount", game.getPlayerCount());
-					settings.put("version", ServerInfo.VERSION);
+					settings.put("version", VERSION);
 					settings.put("timeout", Connection.timeout);
 					
-					c.send((new ServerInfo(settings)).toPacket());
+					System.out.println("DEBUG: Sending serever settings: "+settings.toString());
+					c.send(new StringPacket(PacketType.SERVER_INFO, c.getId(), settings.toString()).toPacket());
 					connections.add( c );
 			    }
 		    	  

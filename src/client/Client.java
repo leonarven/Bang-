@@ -75,9 +75,14 @@ public class Client {
 		
 		// Wait for server info
 		if (socket.read( buffer ).get() > 0) {
-			ServerInfo server = new ServerInfo( new Packet( buffer ));
-			localPlayer = server.getId();
-			serverSettings = server.getJson();
+
+			StringPacket serverInfo = new StringPacket(new Packet( buffer ));
+
+			localPlayer = serverInfo.getId();
+			System.out.println("DEBUG: Getting settings ["+serverInfo.getData()+"]("+serverInfo.getData().length()+")");
+			
+			serverSettings = new JSONObject(serverInfo.getData());
+			System.out.println("DEBUG: clientId set: "+localPlayer);
 
 			Iterator<Object> itr = serverSettings.keys();
 			while(itr.hasNext()) {
@@ -96,6 +101,7 @@ public class Client {
 		// Arpoo nimen (numeron) pelaajalle (TODO)
 		String playerName = Integer.toString(new Random().nextInt());
 		StringPacket clientInfo = new StringPacket(PacketType.CLIENT_INFO, localPlayer, playerName);
+		System.out.println("DEBUG: Sending CLIENT_INFO as player #"+localPlayer);
 		send(clientInfo.toPacket());
 	}
 
@@ -128,7 +134,7 @@ public class Client {
 		packetQueue.add(packet);
 
 		if (packet.getType() != PacketType.PING)
-			System.out.println("DEBUG: Sending packet ("+packet.getType().toChar()+")");
+			System.out.println("DEBUG: Sending packet type "+packet.getType().toChar());
 		
 		// Only one write per channel is possible
 		if (!writeInProgress) {

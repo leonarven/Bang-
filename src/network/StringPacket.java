@@ -17,7 +17,7 @@ public class StringPacket extends PacketBase {
 		{ return data; }
 	
 	protected void setData( ByteBuffer data )
-		{ this.setData(new String(data.array())); }
+		{ this.setData(new String( data.array(), 6, data.limit() - 6 )); }
 
 	/*
 	 * Asettaa datan dataksi

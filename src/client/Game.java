@@ -30,6 +30,7 @@ public class Game {
 	
 	public void handlePacket( Packet packet ) {
 		System.out.println( "DEBUG: PacketType "+packet.getType().toChar()+" read" );
+		System.out.println( "DEBUG: Olen pelaaja "+this.localPlayerId );
 
 		try {
 			switch(packet.getType()) {
@@ -47,12 +48,16 @@ public class Game {
 				break;
 			case MSG:
 				StringPacket message = new StringPacket( packet );
+
 				if (message.getId() == this.localPlayerId) {
-					// TODO: Oma viesti
-					System.out.println( "CHAT: <self> " + message.getData());
+					System.out.println( "DEBUG: CHAT: Oma viesti: ");
+					System.out.println( "CHAT: <" + players.get(message.getData()).getName() + "(#" + message.getId() + ")> " + message.getData());
+
 				} else {
+
 					System.out.println( "CHAT: <" + players.get(message.getData()).getName() + "(#" + message.getId() + ")> " + message.getData());
 				}
+				
 				break;
 			case READY:
 				IntPacket ready = new IntPacket( packet );

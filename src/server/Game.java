@@ -45,13 +45,15 @@ public class Game {
 			// Returns null if there is no player with that id
 			Player player = players.get( connection.getId() );
 	
-			System.out.println( "DEBUG: PacketType "+packet.getType().toChar()+" read from #"+connection.getId() );
+			if ( packet.getType() != PacketType.PING )
+				System.out.println( "DEBUG: PacketType "+packet.getType().toChar()+" read from #"+connection.getId() );
 	
 			if ( player != null || packet.getType() == PacketType.CLIENT_INFO ) {
 	
 				switch(packet.getType()) {
 				case MSG:
 					StringPacket messagePacket = new StringPacket( packet );
+					System.out.println( "DEBUG: Väitetty playerId "+messagePacket.getId() );
 					if ( messagePacket.getId() == connection.getId() ) {
 						System.out.println( "CHAT: " + player.getName() + ": " + messagePacket.getData() );
 						server.sendToAll( packet );
@@ -62,6 +64,7 @@ public class Game {
 					break;
 				case READY:
 					IntPacket readyPacket = new IntPacket( packet );
+					System.out.println( "DEBUG: Väitetty playerId "+readyPacket.getId() );
 					if (readyPacket.getData() == 0) player.setReady( false );
 					else {
 						player.setReady( true );
@@ -78,6 +81,7 @@ public class Game {
 					break;
 				case CLIENT_INFO:
 					StringPacket clientInfo = new StringPacket( packet );
+					System.out.println( "DEBUG: Väitetty playerId "+clientInfo.getId() );
 	
 					if ( player == null ) {
 						// Uusi pelaaja

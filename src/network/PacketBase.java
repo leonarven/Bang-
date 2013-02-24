@@ -22,7 +22,8 @@ abstract public class PacketBase {
 		this.id 	= buffer.getInt(2);
 
 		buffer.position(6);
-		this.setData(buffer.slice());
+
+		this.setData(buffer);
 	}
 	
 	public PacketType getType() 
@@ -31,6 +32,8 @@ abstract public class PacketBase {
 	public int getId() 
 		{ return id; }
 	
+	
 	abstract public Packet toPacket();
+
 	abstract protected void setData(ByteBuffer data);
 }
