@@ -16,7 +16,7 @@ public enum PacketType {
 	 *     R(char)|target_player_id(int)|character_id(String)	| Toinen pelaaja "valmis"
 	 *     R(char)|target_player_id(int)|0(String)				| Toinen pelaaja perui "valmiutensa"
 	 */
-	ILLEGAL    ('?');
+	ERROR    ('?');
 
 	private final char c;
 	
@@ -35,7 +35,7 @@ public enum PacketType {
 			case 'S': return SERVER_INFO;
 			case 'M': return MSG;
 			case 'R': return READY;
-			case '?': default: return ILLEGAL;
+			case '?': default: return ERROR;
 		}
 	}
 }

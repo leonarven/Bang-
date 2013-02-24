@@ -28,7 +28,9 @@ public class Message {
 	public Message( Packet packet ) {
 		ByteBuffer buffer = packet.toByteBuffer();
 		
-		assert buffer.limit() > 4;
+		if (buffer.limit() < 4 || buffer.getChar(0) != PacketType.MSG.toChar() ) {
+			// TODO throw something
+		}
 		
 		this.type = PacketType.MSG;
 		this.id = buffer.getInt( 2 );
