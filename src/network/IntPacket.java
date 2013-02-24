@@ -7,13 +7,13 @@ public class IntPacket {
 	private final int id;
 	private final int data;
 	
-	IntPacket(PacketType type, int id, int data) {
+	public IntPacket(PacketType type, int id, int data) {
 		this.type = type;
 		this.id = id;
 		this.data = data;
 	}
 	
-	IntPacket(Packet packet) throws Exception {
+	public IntPacket(Packet packet) throws Exception {
 		ByteBuffer buffer = packet.toByteBuffer();
 		if (buffer.limit() != 10) {
 			throw new Exception("Invalid packet length");

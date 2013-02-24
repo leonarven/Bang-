@@ -28,10 +28,10 @@ public class StringPacket {
 	public PacketType getType() 
 		{ return type; }
 	
-	public int getSenderId() 
+	public int getId() 
 		{ return id; }
 
-	public String getMessage() 
+	public String getData() 
 		{ return message; }
 	
 	// Other packets might need to override this?
