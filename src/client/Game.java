@@ -11,6 +11,8 @@ import java.util.LinkedList;
 import network.*;
 
 public class Game {
+	private final Client client;
+	
 	private HashMap<Integer, Player> players 	= new HashMap<Integer, Player>();
 	private LinkedList<Card> discardPile 		= new LinkedList<Card>();
 	
@@ -18,12 +20,18 @@ public class Game {
 
 	public boolean isRunning = true;
 	
-	public Game( int localPlayerId ) {
+	public Game( Client client, int localPlayerId ) {
+		this.client = client;
 		this.localPlayerId = localPlayerId;
 	}
 	
+	public void SetReady(boolean ready) {
+		this.players.get(localPlayerId).setReady( ready );
+		
+	}
+	
 	public void handlePacket( Packet packet ) {
-		System.out.println( "DEBUG: PacketType "+packet.getType().toChar()+" readed" );
+		System.out.println( "DEBUG: PacketType "+packet.getType().toChar()+" read" );
 
 		if ( packet.getType() == PacketType.CLIENT_INFO) {
 			Player player = ClientInfo.createPlayer( packet );

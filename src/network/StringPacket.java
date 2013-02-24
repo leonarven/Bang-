@@ -2,45 +2,37 @@ package network;
 
 import java.nio.ByteBuffer;
 
-//Packet format:
-//0: 	char 	= PacketType
-//2: 	int 	= from 
-//4... 	String 	= message
-
-public class Message {
+public class StringPacket {
 	protected final PacketType type;
 	protected final int 		id;
 	protected final String	message;
-	
-	public Message( int id, String message ) {		
-		this.type 		= PacketType.MSG;
-		this.id 		= id;
-		this.message 	= message;
-	}
 
-	public Message( PacketType type, int id, String message ) {		
+	public StringPacket(PacketType type, int id, String message) {		
 		this.type 		= type;
 		this.id 		= id;
 		this.message 	= message;
 	}
 	
-	public Message( Packet packet ) {
+	public StringPacket(Packet packet) throws Exception {
 		ByteBuffer buffer = packet.toByteBuffer();
 		
-		if (buffer.limit() < 4 || buffer.getChar(0) != PacketType.MSG.toChar() ) {
-			// TODO throw something
+		if (buffer.limit() < 4) {
+			throw new Exception("Invalid packet length");
 		}
-		
-		this.type = PacketType.MSG;
-		this.id = buffer.getInt( 2 );
-		this.message = new String( buffer.array(), 6, buffer.limit() - 6 );
+
+		this.type 		= PacketType.MSG;
+		this.id 		= buffer.getInt( 2 );
+		this.message 	= new String( buffer.array(), 6, buffer.limit() - 6 );
 	}
 
-	public String getMessage() 
-		{ return message; }
+	public PacketType getType() 
+		{ return type; }
 	
 	public int getSenderId() 
 		{ return id; }
+
+	public String getMessage() 
+		{ return message; }
 	
 	// Other packets might need to override this?
 	public Packet toPacket() {
