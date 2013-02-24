@@ -3,10 +3,7 @@ package server;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-import network.ClientInfo;
-import network.Message;
-import network.Packet;
-import network.PacketType;
+import network.*;
 import game.Card;
 import game.Character;
 import game.Player;
@@ -48,53 +45,57 @@ public class Game {
 
 		System.out.println( "DEBUG: PacketType "+packet.getType().toChar()+" readed from #"+connection.getId() );
 
-		if ( this.isRunning() ) {
-			// TODO
+		if ( player != null || packet.getType() == PacketType.CLIENT_INFO ) {
 
-		// Game has not started: player is in lobby -> wait for everyone to get ready
-		} else if ( player != null ) {
-			if ( packet.getType() == PacketType.MSG ) {
-				Message message = new Message( packet );
-				if ( message.getSenderId() == connection.getId() ) {
-					System.out.println( "CHAT: " + player.getName() + ": " + message.getMessage() );
+			switch(packet.getType()) {
+			case MSG:
+				StringPacket messagePacket = new StringPacket( packet );
+				if ( messagePacket.getId() == connection.getId() ) {
+					System.out.println( "CHAT: " + player.getName() + ": " + messagePacket.getData() );
 					server.sendToAll( packet );
 				} else {
 					// TODO: Jos lähettäjä ei ole kuka väittää
 				}
-			} else if ( packet.getType() == PacketType.READY ) {
-				Message message = new Message( packet );
-				if (message.getMessage() == "0") player.setReady( false );
+				break;
+			case READY:
+				IntPacket readyPacket = new IntPacket( packet );
+				if (readyPacket.getData() == 0) player.setReady( false );
 				else {
 					player.setReady( true );
 
 					// TODO: message(character_id):n persuteella valikoitu hahmo
 					Character character = new Character("Unknown", 3);
 					player.setCharacter( character );
-					
-					Packet readyPacket = (new Message(PacketType.READY, connection.getId(), message.getMessage())).toPacket();
-					server.sendToAllBut(connection.getId(), readyPacket);
+
+					server.sendToAll( packet );
 				}
 				if ( readyToStart() ) {
 					this.start(); // Start game when everyone is ready
 				}
-			}
-		// Player is not in game -> wait for client info packet...
-		} else if ( packet.getType() == PacketType.CLIENT_INFO ) {
-			if ( players.size() >= maxPlayers ) {
-				server.dropConnection( connection ); // Server is full
-			}
-
-			// Add player to game if clientinfo packet was correct
-			player = ClientInfo.createPlayer( packet );
-			if ( player.getId() == connection.getId() ) {
-				server.sendToAll( packet );
-				for (Player p : players.values()) {
-					connection.send(new ClientInfo(p.getId(), p.getName()).toPacket());
+				break;
+			case CLIENT_INFO:
+				StringPacket readyPacket = new StringPacket( packet );
+				if ( players.size() >= maxPlayers ) {
+					server.dropConnection( connection ); // Server is full
 				}
-				players.put( connection.getId(), player );
+
+				// Add player to game if clientinfo packet was correct
+				player = ClientInfo.createPlayer( packet );
+				if ( player.getId() == connection.getId() ) {
+					server.sendToAll( packet );
+					for (Player p : players.values()) {
+						connection.send(new StringPacket(PacketType.CLIENT_INFO, p.getId(), p.getName()).toPacket());
+
+						if (p.isReady())
+							connection.send(new IntPacket(PacketType.READY, p.getId(), 1).toPacket());
+					}
+					players.put( connection.getId(), player );
+				}
+				break;
+			case ERROR:
+			default:
+				break;
 			}
-			
-		// Client didn't send the client info packet
 		} else {
 			server.dropConnection( connection ); // Client obviously doesn't know how to speak to server...
 		}
