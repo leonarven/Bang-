@@ -11,10 +11,6 @@ public class Packet {
 	// TODO: This class should also handle: 
 	// * endianness
 	// * encodings
-	
-	public static Packet illegalPacket() {
-		return new Packet( PacketType.ILLEGAL, ByteBuffer.allocate( Character.SIZE ).putChar( PacketType.ILLEGAL.toChar() ));
-	}
 
 	// Don't copy ByteBuffer ctor
 	public Packet( PacketType type, ByteBuffer buffer ) {
