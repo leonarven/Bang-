@@ -38,7 +38,6 @@ public class ServerInfo {
 	}
 	
 	public Packet toPacket() {
-		// FIXME: Miksi lähtee 144 tavua?
 		byte[] bytes = json.toString().getBytes();
 		ByteBuffer buffer = ByteBuffer.allocate( Character.SIZE + Integer.SIZE + bytes.length ); // FIXME depends on encoding?
 		buffer.putChar( PacketType.SERVER_INFO.toChar() );

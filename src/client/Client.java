@@ -1,10 +1,13 @@
 package client;
 
+import game.JSONObject;
+
 import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.LinkedList;
+import java.util.Iterator;
 import java.util.Queue;
 import java.util.Random;
 import java.util.Scanner;
@@ -50,13 +53,21 @@ public class Client {
 		if (socket.read( buffer ).get() > 0) {
 			ServerInfo server = new ServerInfo( new Packet( buffer ));
 			localPlayer = server.getId();
-			game = new Game( localPlayer );
-			System.out.println( "DEBUG: SERVER_INFO: v."+server.VERSION );
+			JSONObject settings = server.getJson();
+
+			Iterator itr = settings.keys();
+			while(itr.hasNext()) {
+				Object key = itr.next();
+				System.out.print("DEBVG: SERVER_INFO: "+key+" set");
+			}
+
+			game = new Game( this, localPlayer );
 		}
 
 		// Start receiving packets in another thread:
 		startRead(buffer);
 
+		// Arpoo nimen (numeron) pelaajalle (TODO)
 		send(new ClientInfo(localPlayer, Integer.toString(new Random().nextInt())).toPacket());
 		
 	}
@@ -85,7 +96,7 @@ public class Client {
 		}
 	}
 	
-	private void send(Packet packet) {
+	public void send(Packet packet) {
 		boolean writeInProgress = !packetQueue.isEmpty();
 		packetQueue.add(packet);
 
@@ -125,10 +136,7 @@ public class Client {
 					// so it can be modified after this:
 					Packet packet = new Packet(attachment);
 					
-					// TODO: Siirrä handlePacketiin
-					if ( packet.getType() == PacketType.PING ) {
-						send(packet);
-					} else game.handlePacket(packet); // Pingia tarvitse käsitellä
+					game.handlePacket(packet);
 
 					Client.this.startRead( attachment );
 				} else {
