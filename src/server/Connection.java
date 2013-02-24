@@ -8,12 +8,11 @@ import java.nio.channels.CompletionHandler;
 import java.util.*;
 import java.util.concurrent.*;
 
-import network.Packet;
-import network.PacketType;
+import network.*;
 
 public class Connection {
 	public static final int BUFFER_SIZE = 512;
-	public static int 		timeout 	= 100;
+	public static int 		timeout 	= 10; // Sekunteina
 	
 	private final Server server;
 	private final AsynchronousSocketChannel socket;

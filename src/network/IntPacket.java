@@ -2,42 +2,40 @@ package network;
 
 import java.nio.ByteBuffer;
 
-public class IntPacket {
-	private final PacketType type;
-	private final int id;
-	private final int data;
-	
-	public IntPacket(PacketType type, int id, int data) {
-		this.type = type;
-		this.id = id;
-		this.data = data;
+public class IntPacket extends PacketBase {
+	protected int data;
+
+	public IntPacket(PacketType type, int id, int data) {		
+		super(type, id);
+		this.setData(data);
 	}
 	
-	public IntPacket(Packet packet) throws Exception {
-		ByteBuffer buffer = packet.toByteBuffer();
-		if (buffer.limit() != 10) {
-			throw new Exception("Invalid packet length");
-		}
-		
-		this.type 	= PacketType.fromChar(buffer.getChar(0));
-		this.id 	= buffer.getInt(2);
-		this.data 	= buffer.getInt(6);
-	}
-	
-	public PacketType getType() 
-		{ return type; }
-	
-	public int getId() 
-		{ return id; }
-	
+	public IntPacket( Packet packet ) throws Exception
+		{ super(packet); } 
+
 	public int getData() 
 		{ return data; }
 	
+	protected void setData( ByteBuffer data )
+		{ this.setData(data.getInt()); }
+
+	/*
+	 * Asettaa datan dataksi
+	 */
+	public void setData( int data )
+		{ this.data = data; }
+
+	/*
+	 * Muuttaa StringPacketin Packet:ksi (daa?)
+	 */
 	public Packet toPacket() {
-		ByteBuffer buffer = ByteBuffer.allocate(Character.SIZE + Integer.SIZE);
-		buffer.putChar(type.toChar());
-		buffer.putInt(data);
 		
-		return new Packet(type, buffer);
+		ByteBuffer buffer = ByteBuffer.allocate( Character.SIZE + 2 * Integer.SIZE ); // FIXME depends on encoding?
+		buffer.putChar( super.getType().toChar() );
+		buffer.putInt( super.getId() );
+		buffer.putInt( data );
+		
+		// Don't make copy of buffer
+		return new Packet( super.getType(), buffer );	
 	}
 }

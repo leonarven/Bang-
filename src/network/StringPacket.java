@@ -2,48 +2,41 @@ package network;
 
 import java.nio.ByteBuffer;
 
-public class StringPacket {
-	protected final PacketType type;
-	protected final int 		id;
-	protected final String	data;
+public class StringPacket extends PacketBase {
+	protected String data;
 
-	public StringPacket(PacketType type, int id, String data) {		
-		this.type 		= type;
-		this.id 		= id;
-		this.data 		= data;
-	}
-	
-	public StringPacket(Packet packet) throws Exception {
-		ByteBuffer buffer = packet.toByteBuffer();
-		
-		if (buffer.limit() < 4) {
-			throw new Exception("Invalid packet length");
-		}
-
-		this.type 	= PacketType.fromChar(buffer.getChar( 0 ));
-		this.id 	= buffer.getInt( 2 );
-		this.data 	= new String( buffer.array(), 6, buffer.limit() - 6 );
+	public StringPacket( PacketType type, int id, String data ) {		
+		super(type, id);
+		this.setData(data);
 	}
 
-	public PacketType getType() 
-		{ return type; }
-	
-	public int getId() 
-		{ return id; }
+	public StringPacket( Packet packet ) throws Exception
+		{ super(packet); } 
 
 	public String getData() 
 		{ return data; }
 	
-	// Other packets might need to override this?
+	protected void setData( ByteBuffer data )
+		{ this.setData(new String(data.array())); }
+
+	/*
+	 * Asettaa datan dataksi
+	 */
+	public void setData( String data )
+		{ this.data = data; }
+
+	/*
+	 * Muuttaa StringPacketin Packet:ksi (daa?)
+	 */
 	public Packet toPacket() {
 		
 		byte[] bytes = data.getBytes();
 		ByteBuffer buffer = ByteBuffer.allocate( Character.SIZE + Integer.SIZE + bytes.length ); // FIXME depends on encoding?
-		buffer.putChar( type.toChar() );
-		buffer.putInt( id );
+		buffer.putChar( super.getType().toChar() );
+		buffer.putInt( super.getId() );
 		buffer.put( bytes ); // FIXME encodings.
 		
 		// Don't make copy of buffer
-		return new Packet( type, buffer );	
+		return new Packet( super.getType(), buffer );	
 	}
 }

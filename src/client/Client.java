@@ -55,7 +55,7 @@ public class Client {
 	        	while( running ) {
 	        		Thread.sleep( this.timeout * 1000 );
 	        		
-	        		send((new IntPacket(PacketType.PING, this.id)).toPacket());
+	        		send((new IntPacket(PacketType.PING, this.id, 0)).toPacket());
 	        	}
 	        } catch (InterruptedException e) {
 
@@ -79,10 +79,10 @@ public class Client {
 			localPlayer = server.getId();
 			serverSettings = server.getJson();
 
-			Iterator itr = serverSettings.keys();
+			Iterator<Object> itr = serverSettings.keys();
 			while(itr.hasNext()) {
 				Object key = itr.next();
-				System.out.print("DEBVG: SERVER_INFO: "+key+" set");
+				System.out.println("DEBUG: SERVER_INFO: "+key+" set: "+serverSettings.getInt(key.toString()));
 			}
 
 			(new Thread(new PingLoop(localPlayer, serverSettings.getInt("timeout")))).start();
@@ -94,15 +94,16 @@ public class Client {
 		startRead(buffer);
 
 		// Arpoo nimen (numeron) pelaajalle (TODO)
-		send(new ClientInfo(localPlayer, Integer.toString(new Random().nextInt())).toPacket());
-		
+		String playerName = Integer.toString(new Random().nextInt());
+		StringPacket clientInfo = new StringPacket(PacketType.CLIENT_INFO, localPlayer, playerName);
+		send(clientInfo.toPacket());
 	}
 
 	private void clientLoop() {
 		System.out.print("> ");
 		String message = reader.nextLine();
 		
-		this.send(new Message(game.getLocalPlayerId(), message).toPacket());
+		this.send(new StringPacket(PacketType.MSG, game.getLocalPlayerId(), message).toPacket());
 		
 		// Give server some time to respond => nicer console output 
 		try {

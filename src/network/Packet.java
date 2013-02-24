@@ -3,7 +3,6 @@ package network;
 import java.nio.ByteBuffer;
 
 public class Packet {
-	protected final PacketType type;
 	protected final ByteBuffer buffer;
 
 	// Warning: Two different constructors work very differently! (bad design :D)
@@ -15,34 +14,39 @@ public class Packet {
 	// Don't copy ByteBuffer ctor
 	public Packet( PacketType type, ByteBuffer buffer ) {
 		buffer.putChar( 0, type.toChar() );
-		this.type = type;
 		this.buffer = buffer;
 	}
 	
+	/* Moi Jaakko :)
+	 * Kuitenkin oot ainoo joka lukee meidän koodia
+	 * T. Sante & leonarven
+	 */
+	
 	// Construct packet by copying the ByteBuffer.
-	public Packet( ByteBuffer buffer ) {
-		buffer.rewind();
+	public Packet( ByteBuffer buffer, boolean copy ) {
+		if ( copy ) {
+			buffer.rewind();
 
-		// Copy ByteBuffer
-		byte[] array = new byte[buffer.remaining()];
-		buffer.get( array );
+			// Copy ByteBuffer
+			byte[] array = new byte[buffer.remaining()];
+			buffer.get( array );
 
-		this.buffer = ByteBuffer.wrap( array );
-		
-		type = PacketType.fromChar( buffer.getChar(0) );
-
-		// Does ByteBuffer.wrap( byte[] ) ensure ByteBuffer.hasArray == true?
-		assert this.buffer.hasArray();
+			this.buffer = ByteBuffer.wrap( array );
+			
+			// Does ByteBuffer.wrap( byte[] ) ensure ByteBuffer.hasArray == true?
+			assert this.buffer.hasArray();
+		} else this.buffer = buffer;
 	}
+
+	public Packet( ByteBuffer buffer )
+		{ this(buffer, true); }
 
 	public ByteBuffer toByteBuffer() {
 		buffer.rewind();
 		return buffer;
 	}
 	
-	public PacketType getType() 
-		{ return type; }
-	
-	public void setType( PacketType type ) 
-		{ buffer.putChar( type.toChar() ); }
+	public PacketType getType() {
+		return PacketType.fromChar(this.buffer.getChar(0));
+	}
 }

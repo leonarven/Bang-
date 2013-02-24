@@ -39,65 +39,81 @@ public class Game {
 	public void handlePacket( Packet packet, Connection connection ) {
 		// Packet might be null if other thread has managed to poll it before this
 		if ( packet == null ) return;
-		
-		// Returns null if there is no player with that id
-		Player player = players.get( connection.getId() );
 
-		System.out.println( "DEBUG: PacketType "+packet.getType().toChar()+" readed from #"+connection.getId() );
-
-		if ( player != null || packet.getType() == PacketType.CLIENT_INFO ) {
-
-			switch(packet.getType()) {
-			case MSG:
-				StringPacket messagePacket = new StringPacket( packet );
-				if ( messagePacket.getId() == connection.getId() ) {
-					System.out.println( "CHAT: " + player.getName() + ": " + messagePacket.getData() );
-					server.sendToAll( packet );
-				} else {
-					// TODO: Jos lähettäjä ei ole kuka väittää
-				}
-				break;
-			case READY:
-				IntPacket readyPacket = new IntPacket( packet );
-				if (readyPacket.getData() == 0) player.setReady( false );
-				else {
-					player.setReady( true );
-
-					// TODO: message(character_id):n persuteella valikoitu hahmo
-					Character character = new Character("Unknown", 3);
-					player.setCharacter( character );
-
-					server.sendToAll( packet );
-				}
-				if ( readyToStart() ) {
-					this.start(); // Start game when everyone is ready
-				}
-				break;
-			case CLIENT_INFO:
-				StringPacket readyPacket = new StringPacket( packet );
-				if ( players.size() >= maxPlayers ) {
-					server.dropConnection( connection ); // Server is full
-				}
-
-				// Add player to game if clientinfo packet was correct
-				player = ClientInfo.createPlayer( packet );
-				if ( player.getId() == connection.getId() ) {
-					server.sendToAll( packet );
-					for (Player p : players.values()) {
-						connection.send(new StringPacket(PacketType.CLIENT_INFO, p.getId(), p.getName()).toPacket());
-
-						if (p.isReady())
-							connection.send(new IntPacket(PacketType.READY, p.getId(), 1).toPacket());
+		try {
+			
+			// Returns null if there is no player with that id
+			Player player = players.get( connection.getId() );
+	
+			System.out.println( "DEBUG: PacketType "+packet.getType().toChar()+" read from #"+connection.getId() );
+	
+			if ( player != null || packet.getType() == PacketType.CLIENT_INFO ) {
+	
+				switch(packet.getType()) {
+				case MSG:
+					StringPacket messagePacket = new StringPacket( packet );
+					if ( messagePacket.getId() == connection.getId() ) {
+						System.out.println( "CHAT: " + player.getName() + ": " + messagePacket.getData() );
+						server.sendToAll( packet );
+					} else {
+						System.out.println("DEBUG: Invalid player Id in MSG");
+						// TODO: Jos lähettäjä ei ole kuka väittää
 					}
-					players.put( connection.getId(), player );
+					break;
+				case READY:
+					IntPacket readyPacket = new IntPacket( packet );
+					if (readyPacket.getData() == 0) player.setReady( false );
+					else {
+						player.setReady( true );
+	
+						// TODO: message(character_id):n persuteella valikoitu hahmo
+						Character character = new Character("Unknown", 3);
+						player.setCharacter( character );
+	
+						server.sendToAll( packet );
+					}
+					if ( readyToStart() ) {
+						this.start(); // Start game when everyone is ready
+					}
+					break;
+				case CLIENT_INFO:
+					StringPacket clientInfo = new StringPacket( packet );
+	
+					if ( player == null ) {
+						// Uusi pelaaja
+						
+						if ( players.size() >= maxPlayers ) {
+							System.out.println("DEBUG: Server is full - Dropping client");
+							server.dropConnection( connection ); // FIXME: Server is full
+							break;
+						}
+						player = new Player(connection.getId(), clientInfo.getData());
+					}
+	
+					if ( player.getId() == connection.getId() ) {
+						server.sendToAll( packet );
+						for (Player p : players.values()) {
+							connection.send(new StringPacket(PacketType.CLIENT_INFO, p.getId(), p.getName()).toPacket());
+	
+							if (p.isReady())
+								connection.send(new IntPacket(PacketType.READY, p.getId(), 1).toPacket());
+						}
+						players.put( connection.getId(), player );
+					} else {
+						System.out.println("DEBUG: Invalid playerId in CLIENT_INFO");
+						server.dropConnection( connection ); // FIXME: Server is full
+					}
+					break;
+				case ERROR:
+				default:
+					break;
 				}
-				break;
-			case ERROR:
-			default:
-				break;
+			} else {
+				server.dropConnection( connection ); // Client obviously doesn't know how to speak to server...
 			}
-		} else {
-			server.dropConnection( connection ); // Client obviously doesn't know how to speak to server...
+		} catch(Exception e) {
+			System.out.println("ERROR: Server:Game:handlePacket()");
+			System.out.println(e.getMessage());
 		}
 	}
 	

@@ -6,12 +6,13 @@ abstract public class PacketBase {
 	private final PacketType type;
 	private final int id;
 	
-	protected PacketBase(PacketType type, int id) {
+	protected PacketBase( PacketType type, int id ) {
 		this.type = type;
 		this.id = id;
 	}
 	
-	protected PacketBase(Packet packet) throws Exception {
+	protected PacketBase( Packet packet ) throws Exception {
+
 		ByteBuffer buffer = packet.toByteBuffer();
 		if (buffer.limit() < 6) {
 			throw new Exception("Invalid packet length");
@@ -31,5 +32,5 @@ abstract public class PacketBase {
 		{ return id; }
 	
 	abstract public Packet toPacket();
-	abstract protected Packet setData(ByteBuffer data);
+	abstract protected void setData(ByteBuffer data);
 }
