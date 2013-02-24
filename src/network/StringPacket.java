@@ -5,12 +5,12 @@ import java.nio.ByteBuffer;
 public class StringPacket {
 	protected final PacketType type;
 	protected final int 		id;
-	protected final String	message;
+	protected final String	data;
 
-	public StringPacket(PacketType type, int id, String message) {		
+	public StringPacket(PacketType type, int id, String data) {		
 		this.type 		= type;
 		this.id 		= id;
-		this.message 	= message;
+		this.data 		= data;
 	}
 	
 	public StringPacket(Packet packet) throws Exception {
@@ -20,9 +20,9 @@ public class StringPacket {
 			throw new Exception("Invalid packet length");
 		}
 
-		this.type 		= PacketType.MSG;
-		this.id 		= buffer.getInt( 2 );
-		this.message 	= new String( buffer.array(), 6, buffer.limit() - 6 );
+		this.type 	= PacketType.MSG;
+		this.id 	= buffer.getInt( 2 );
+		this.data 	= new String( buffer.array(), 6, buffer.limit() - 6 );
 	}
 
 	public PacketType getType() 
@@ -32,12 +32,12 @@ public class StringPacket {
 		{ return id; }
 
 	public String getData() 
-		{ return message; }
+		{ return data; }
 	
 	// Other packets might need to override this?
 	public Packet toPacket() {
 		
-		byte[] bytes = message.getBytes();
+		byte[] bytes = data.getBytes();
 		ByteBuffer buffer = ByteBuffer.allocate( Character.SIZE + Integer.SIZE + bytes.length ); // FIXME depends on encoding?
 		buffer.putChar( type.toChar() );
 		buffer.putInt( id );

@@ -18,7 +18,7 @@ public class Game {
 	
 	private final int localPlayerId;
 
-	public boolean isRunning = true;
+	private boolean isRunning = false;
 	
 	public Game( Client client, int localPlayerId ) {
 		this.client = client;
@@ -26,36 +26,60 @@ public class Game {
 	}
 	
 	public void SetReady(boolean ready) {
-		this.players.get(localPlayerId).setReady( ready );
-		
+		if ( isRunning = false ) {
+			this.client.send(new IntPacket( PacketType.READY, localPlayerId, ready?1:0 ).toPacket());
+		}
 	}
 	
 	public void handlePacket( Packet packet ) {
 		System.out.println( "DEBUG: PacketType "+packet.getType().toChar()+" read" );
 
-		if ( packet.getType() == PacketType.CLIENT_INFO) {
-			Player player = ClientInfo.createPlayer( packet );
-			players.put( player.getId(), player );
-			System.out.println(player.getName() + " joined");
-		} else if ( packet.getType() == PacketType.MSG ) {
-			Message message = new Message( packet );
-			if (message.getSenderId() == this.localPlayerId) {
-				// TODO: Oma viesti
-				System.out.println( "CHAT: <self> " + message.getMessage());
-			} else {
-				System.out.println( "CHAT: <" + players.get(message.getSenderId()).getName() + "(#" + message.getSenderId() + ")> " + message.getMessage());
+		try {
+			if ( !isRunning ) {
+				// Vin rhe:
+				if ( packet.getType() == PacketType.ERROR ) {
+					IntPacket errorPacket = new IntPacket(packet);
+					if (ErrorCode.fromInt(errorPacket.getData()) == ErrorCode.INVALID_USERNAME && 
+							!players.containsKey(localPlayerId)) {
+						// TODO: Mitä tehdä jos client-info ei kelvannut?
+					}
+				// Client info: uusi pelaaja!:
+				} else if ( packet.getType() == PacketType.CLIENT_INFO) {
+					Player player = ClientInfo.createPlayer( packet );
+					players.put( player.getId(), player );
+					System.out.println(player.getName() + " joined");
+				// Viesti chatissä!:
+				} else if ( packet.getType() == PacketType.MSG ) {
+					StringPacket message = new StringPacket( packet );
+					if (message.getId() == this.localPlayerId) {
+						// TODO: Oma viesti
+						System.out.println( "CHAT: <self> " + message.getData());
+					} else {
+						System.out.println( "CHAT: <" + players.get(message.getData()).getName() + "(#" + message.getId() + ")> " + message.getData());
+					}
+				// Pelaaja kertoi olevansa valmis!:
+				} else if ( packet.getType() == PacketType.READY ) {
+					IntPacket ready = new IntPacket( packet );
+					players.get(ready.getId()).setReady(ready.getData() !=0 );
+					
+					// Tarkista onko kaikki pelaajat valmiina jos pelaaja ei perunut valmiuttaan
+					if ( ready.getData() != 0 ) {
+						boolean allReady = true;
+						for (Player p : players.values()) {
+							if (!p.isReady()) {
+								allReady = false;
+								break;
+							}
+						}
+						
+						if ( allReady ) {
+							// TODO aloita peli
+						}
+					}
+				}
 			}
-		} else if ( packet.getType() == PacketType.READY ) {
-			Message message = new Message( packet );
-			if (message.getSenderId() == this.localPlayerId) {
-				// TODO: Oma rooli
-				players.get(localPlayerId).setType(PlayerType.fromString(message.getMessage()));
-			} else {
-				// TODO: Toiminnallisuus toisen pelaajan hahmon merkintään
-				Character character = new Character("Unknown", 3);
-
-				players.get(message.getSenderId()).setCharacter(character);
-			}
+		} catch ( Exception e ) {
+			System.err.println( e );
 		}
 	}
 	
