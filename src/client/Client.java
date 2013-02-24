@@ -13,7 +13,7 @@ import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.Executors;
-
+import game.*;
 import network.*;
 
 public class Client {
@@ -35,9 +35,33 @@ public class Client {
 	private Queue<Packet> packetQueue = new LinkedList<Packet>();
 	private boolean running = true;
 
+	public JSONObject serverSettings;
+	
 	private Client() throws IOException {
 		group = AsynchronousChannelGroup.withThreadPool(Executors.newSingleThreadExecutor());
 	}
+	
+	private class PingLoop implements Runnable {
+		private int id;
+		private int timeout; //Sekunteina
+
+		public PingLoop(int id, int timeout) {
+			this.id = id;
+			this.timeout = (int)(timeout/2);
+		}
+		
+	    public void run() {
+	        try {
+	        	while( running ) {
+	        		Thread.sleep( this.timeout * 1000 );
+	        		
+	        		send((new IntPacket(PacketType.PING, this.id)).toPacket());
+	        	}
+	        } catch (InterruptedException e) {
+
+	        }
+	    }	
+	};
 	
 	public void connect(InetSocketAddress address, ByteBuffer buffer) throws Exception{
 		System.out.println("Connecting to " + address.getAddress() + ":" + address.getPort());
@@ -53,13 +77,15 @@ public class Client {
 		if (socket.read( buffer ).get() > 0) {
 			ServerInfo server = new ServerInfo( new Packet( buffer ));
 			localPlayer = server.getId();
-			JSONObject settings = server.getJson();
+			serverSettings = server.getJson();
 
-			Iterator itr = settings.keys();
+			Iterator itr = serverSettings.keys();
 			while(itr.hasNext()) {
 				Object key = itr.next();
 				System.out.print("DEBVG: SERVER_INFO: "+key+" set");
 			}
+
+			(new Thread(new PingLoop(localPlayer, serverSettings.getInt("timeout")))).start();
 
 			game = new Game( this, localPlayer );
 		}
