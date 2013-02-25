@@ -24,13 +24,8 @@ public class Packet {
 //		System.out.println("1 - pos:"+buffer.position());
 //		System.out.println("1 - rem:"+buffer.remaining());
 
-		int length = 0; // buffer.position();
+		int length = buffer.position();
 		char ch;
-
-		// Ei uskalleta olettaa, että position on aina lopussa
-		buffer.position(0);
-		while(buffer.remaining() > 0 && !java.lang.Character.isWhitespace(ch = (char)buffer.get()))
-			length++;
 
 //		System.out.println("2 - lim:"+buffer.limit());
 //		System.out.println("2 - pos:"+buffer.position());
@@ -59,20 +54,7 @@ public class Packet {
 			// TODO: ota vain length-palanen buffer:sta
 			this.buffer = buffer;
 		}
-		
-		
 
-//		while(_buffer.remaining() > 0 && !java.lang.Character.isWhitespace(ch = (char)_buffer.get()))
-//			lenToAllocate++;
-
-/*
-
-		ByteBuffer _buffer = ;
-		char ch;
-		while(buffer.remaining() > 0 && !java.lang.Character.isWhitespace(ch = (char)_buffer.get()))
-		    this.buffer.putChar(ch);
-*/
-		
 //		System.out.println("3 - lim:"+this.buffer.limit());
 //		System.out.println("3 - pos:"+this.buffer.position());
 //		System.out.println("3 - rem:"+this.buffer.remaining());

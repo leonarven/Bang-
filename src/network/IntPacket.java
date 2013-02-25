@@ -9,7 +9,9 @@ public class IntPacket extends PacketBase {
 		super(type, id);
 		this.setData(data);
 	}
-	
+	public IntPacket(PacketType type, int id, boolean data)
+		{ this(type, id, data?1:0); }
+
 	public IntPacket( Packet packet ) throws Exception
 		{ super(packet); } 
 

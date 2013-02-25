@@ -50,12 +50,9 @@ public class Game {
 				StringPacket message = new StringPacket( packet );
 
 				if (message.getId() == this.localPlayerId) {
-					System.out.println( "DEBUG: CHAT: Oma viesti: ");
-					System.out.print( "CHAT: <" + players.get(message.getId()).getName());
-					System.out.println( " (#" + message.getId() + ")> " + message.getData());
+				
+					System.out.println( "CHAT: <self:" + players.get(message.getId()).getName() + " (#" + message.getId() + ")> " + message.getData());
 
-					System.out.println(players.get(this.localPlayerId).getName().length());
-					System.out.println(message.getData().length());
 				} else {
 
 					System.out.println( "CHAT: <" + players.get(message.getId()).getName() + "(#" + message.getId() + ")> " + message.getData());

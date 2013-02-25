@@ -110,7 +110,11 @@ public class Client {
 		System.out.print("> ");
 		String message = reader.nextLine();
 		
-		this.send(new StringPacket(PacketType.MSG, game.getLocalPlayerId(), message).toPacket());
+		//FIXME: Kehitysversio. poispoispois
+		if (message.compareTo("READY") == 0) 
+			this.send(new IntPacket(PacketType.READY, game.getLocalPlayerId(), true).toPacket());
+		else
+			this.send(new StringPacket(PacketType.MSG, game.getLocalPlayerId(), message).toPacket());
 		
 		// Give server some time to respond => nicer console output 
 		try {
