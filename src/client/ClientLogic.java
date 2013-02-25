@@ -103,4 +103,10 @@ public class ClientLogic extends Game {
 		
 	}
 
+	@Override
+	protected void preTurn() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

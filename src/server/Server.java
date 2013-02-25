@@ -74,6 +74,7 @@ public class Server {
 		for ( Connection c : connections ) {
 			if ( !c.isConnected() ) {
 				dropConnection( c );
+				System.out.println("DEBUG: isConnected==false");
 				continue;
 			}
 			

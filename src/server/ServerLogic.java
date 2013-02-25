@@ -147,26 +147,7 @@ public class ServerLogic extends Game {
 			default:
 				assert false;
 		}
-		
-		
-		
-		
-		1,2,2,3,4,2,3,4,2,...
-		1,2,2,4,3,2,3,4,2,3,2,4,..
-		
-		
-		1 2 2
-		4 3 2 3
-		4 2 3 2
-		
-		
-		
-		1: n == 1
-		2: 
-		3: 
-		4: n%4 == 0
-		
-		
+
 		for( int i = 0; i < outlawCount; i++)   playerTypePile.add(PlayerType.OUTLAW);
 		for( int i = 0; i < deputyCount; i++)   playerTypePile.add(PlayerType.DEPUTY);
 		for( int i = 0; i < renegadeCount; i++) playerTypePile.add(PlayerType.RENEGADE);
@@ -220,5 +201,11 @@ public class ServerLogic extends Game {
 		}
 		
 		return true;
+	}
+
+	@Override
+	protected void preTurn() {
+		// TODO Auto-generated method stub
+		
 	}
 }
