@@ -76,12 +76,12 @@ public class Client {
 		// Wait for server info
 		if (socket.read( buffer ).get() > 0) {
 
-			StringPacket serverInfo = new StringPacket(new Packet( buffer ));
+			JsonPacket serverInfo = new JsonPacket(new Packet( buffer ));
 
 			localPlayer = serverInfo.getId();
 			System.out.println("DEBUG: Getting settings ["+serverInfo.getData()+"]("+serverInfo.getData().length()+")");
 			
-			serverSettings = new JSONObject(serverInfo.getData());
+			serverSettings = serverInfo.getData();
 			System.out.println("DEBUG: clientId set: "+localPlayer);
 
 			Iterator<Object> itr = serverSettings.keys();

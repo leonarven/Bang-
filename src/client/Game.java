@@ -30,7 +30,6 @@ public class Game {
 	
 	public void handlePacket( Packet packet ) {
 		System.out.println( "DEBUG: PacketType "+packet.getType().toChar()+" read" );
-		System.out.println( "DEBUG: Olen pelaaja "+this.localPlayerId );
 
 		try {
 			switch(packet.getType()) {

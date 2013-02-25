@@ -7,7 +7,7 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.*;
 import java.util.concurrent.*;
-
+import game.*;
 import network.*;
 
 public class Connection {
@@ -17,6 +17,7 @@ public class Connection {
 	private final Server server;
 	private final AsynchronousSocketChannel socket;
 	private final int id;
+	public Player player;
 
 	private BlockingQueue<Packet> 	inQueue = new LinkedBlockingQueue<Packet>();
 	private Queue<Packet> 			outQueue = new LinkedList<Packet>();
@@ -25,6 +26,7 @@ public class Connection {
 		this.id = id;
 		this.socket = socket;
 		this.server = server;
+		this.player = null;
 	
 		// Allocate once for big packet. When packet is received, 
 		// copy the relevant information from the buffer.
@@ -115,6 +117,9 @@ public class Connection {
 	public boolean isConnected() {
 		return socket.isOpen();
 	}
+	
+	public void setPlayer(Player player)
+		{ this.player = player; }
 	
 	public int getId() 
 		{ return this.id; }

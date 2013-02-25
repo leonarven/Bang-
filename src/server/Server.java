@@ -21,7 +21,7 @@ public class Server {
 	final AsynchronousServerSocketChannel acceptor;
 	
 	private int connectionCounter = 0;
-	private Set<Connection> connections = Collections.newSetFromMap( new ConcurrentHashMap<Connection, Boolean>() );	
+	public Set<Connection> connections = Collections.newSetFromMap( new ConcurrentHashMap<Connection, Boolean>() );	
 	
 	private Game game;
 	
@@ -54,7 +54,7 @@ public class Server {
 					settings.put("timeout", Connection.timeout);
 					
 					System.out.println("DEBUG: Sending serever settings: "+settings.toString());
-					c.send(new StringPacket(PacketType.SERVER_INFO, c.getId(), settings.toString()).toPacket());
+					c.send(new JsonPacket(PacketType.SERVER_INFO, c.getId(), settings).toPacket());
 					connections.add( c );
 			    }
 		    	  
