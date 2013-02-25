@@ -29,13 +29,13 @@ public class IntPacket extends PacketBase {
 	 * Muuttaa StringPacketin Packet:ksi (daa?)
 	 */
 	public Packet toPacket() {
-		
-		ByteBuffer buffer = ByteBuffer.allocate( Character.SIZE + 2 * Integer.SIZE ); // FIXME depends on encoding?
+
+		ByteBuffer buffer = ByteBuffer.allocate( java.lang.Character.SIZE/8 + 2 * Integer.SIZE / (8 * Integer.bitCount(super.getId())) ); // FIXME depends on encoding?
 		buffer.putChar( super.getType().toChar() );
 		buffer.putInt( super.getId() );
 		buffer.putInt( data );
-		
+
 		// Don't make copy of buffer
-		return new Packet( super.getType(), buffer );	
+		return new Packet( buffer, false );	
 	}
 }

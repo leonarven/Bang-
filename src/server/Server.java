@@ -80,13 +80,7 @@ public class Server {
 			// https://en.wikipedia.org/wiki/Producer-consumer_problem	
 			// Client should send keep-alive messages. receive has timeout value.
 			if ( c.hasReceivedData() ) {
-				Packet received = c.receive();
-				
-				// Ei haluta viestitulvaa
-				if (received .getType() != PacketType.PING) {
-					System.out.println( "DEBUG: c(#"+c.getId()+").hasReceivedData()" );
-				}
-				
+				Packet received = c.receive();				
 				game.handlePacket( received, c );
 			}
 		}

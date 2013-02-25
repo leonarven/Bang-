@@ -100,6 +100,7 @@ public class Client {
 
 		// Arpoo nimen (numeron) pelaajalle (TODO)
 		String playerName = Integer.toString(new Random().nextInt());
+		System.out.println("DEBUG: Player name generated: "+playerName);
 		StringPacket clientInfo = new StringPacket(PacketType.CLIENT_INFO, localPlayer, playerName);
 		System.out.println("DEBUG: Sending CLIENT_INFO as player #"+localPlayer);
 		send(clientInfo.toPacket());
@@ -133,8 +134,9 @@ public class Client {
 		boolean writeInProgress = !packetQueue.isEmpty();
 		packetQueue.add(packet);
 
-		if (packet.getType() != PacketType.PING)
-			System.out.println("DEBUG: Sending packet type "+packet.getType().toChar());
+		if (packet.getType() != PacketType.PING) {
+			System.out.println("DEBUG: Sending packet type "+packet.getType().toChar()+", len "+packet.toByteBuffer().capacity());
+		}
 		
 		// Only one write per channel is possible
 		if (!writeInProgress) {
@@ -144,7 +146,9 @@ public class Client {
 	
 	private void startWrite() {
 		if ( !packetQueue.isEmpty() ) {
-			socket.write(packetQueue.poll().toByteBuffer(), timeout, timeunit, null, new CompletionHandler<Integer, Object>() {
+			ByteBuffer packetByteBuffer = packetQueue.poll().toByteBuffer();
+			
+			socket.write(packetByteBuffer, /*0, packetByteBuffer.capacity(), */timeout, timeunit, null, new CompletionHandler<Integer, Object>() {
 				@Override
 				public void completed(Integer result, Object attachment) 
 					{ Client.this.startWrite(); }

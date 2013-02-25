@@ -55,7 +55,7 @@ public class Game {
 					StringPacket messagePacket = new StringPacket( packet );
 					System.out.println( "DEBUG: Väitetty playerId "+messagePacket.getId() );
 					if ( messagePacket.getId() == connection.getId() ) {
-						System.out.println( "CHAT: " + player.getName() + ": " + messagePacket.getData() );
+						System.out.println( "CHAT: <" + player.getName() + "> " + messagePacket.getData() );
 						server.sendToAll( packet );
 					} else {
 						System.out.println("DEBUG: Invalid player Id in MSG");
