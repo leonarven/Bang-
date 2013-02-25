@@ -160,15 +160,15 @@ public class ServerLogic extends Game {
 
 			c.player.setType(playerTypePile.get(playerTypePileI++));
 			
-			if ( c.player.getType() == PlayerType.SHERIFF )
-				playerInfoPublicJson.put("playerType", c.player.getType().toChar());
-
 			playerInfoPublicJson.put("health", c.player.getHealth());
 			playerInfoPublicJson.put("range", c.player.getRange());
 			playerInfoPublicJson.put("characterName", c.player.getCharacter().GetName());
+			if ( c.player.getType() == PlayerType.SHERIFF )
+				playerInfoPublicJson.put("playerType", c.player.getType().toChar());
 
-			playerInfoPrivateJson = new JSONObject(playerInfoPublicJson);
-			
+			playerInfoPrivateJson.put("health", c.player.getHealth());
+			playerInfoPrivateJson.put("range", c.player.getRange());
+			playerInfoPrivateJson.put("characterName", c.player.getCharacter().GetName());
 			playerInfoPrivateJson.put("playerType", c.player.getType().toChar());
 			
 			JsonPacket playerInfoPublic = new JsonPacket(PacketType.PLAYER_INFO, c.getId(), playerInfoPublicJson);

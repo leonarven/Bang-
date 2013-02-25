@@ -2,6 +2,7 @@ package client;
 
 import network.ErrorCode;
 import network.IntPacket;
+import network.JsonPacket;
 import network.Packet;
 import network.PacketType;
 import network.StringPacket;
@@ -37,6 +38,11 @@ public class ClientLogic extends Game {
 				players.put( clientInfo.getId(), new Player(clientInfo.getId(), clientInfo.getData()) );
 				System.out.println(clientInfo.getData() + " joined");
 				break;
+			case PLAYER_INFO:
+				JsonPacket playerInfo = new JsonPacket(packet);
+
+				System.out.println("DEBUG: PLAYER_INFO to player #"+playerInfo.getId()+": "+playerInfo.getData().toString());
+				break;
 			case MSG:
 				StringPacket message = new StringPacket( packet );
 
@@ -53,6 +59,8 @@ public class ClientLogic extends Game {
 			case READY:
 				IntPacket ready = new IntPacket( packet );
 				players.get(ready.getId()).setReady(ready.getData() !=0 );
+				
+				System.out.println("Player #" + ready.getId() + " is ready to rock!");
 				
 				// Tarkista onko kaikki pelaajat valmiina jos pelaaja ei perunut valmiuttaan
 				if ( ready.getData() != 0 ) {

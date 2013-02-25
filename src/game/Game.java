@@ -16,6 +16,7 @@ public abstract class Game {
 
 	protected int maxPlayers = 8;
 	protected int minPlayers = 1;
+	protected int turnIterator = 0;
 		
 	public Game() {
 		
@@ -34,6 +35,8 @@ public abstract class Game {
 	}
 	
 	abstract public void handlePacket(Packet packet);
+	abstract protected void preTurn();
+	
 	abstract protected void doStart();
 	abstract protected void doReset();
 	
@@ -47,6 +50,10 @@ public abstract class Game {
 	public void 	addPlayer( int id, Player p ) 	{ players.put( id, p ); }
 	public void 	removePlayer( int id ) 			{ players.remove( id ); }
 
+	public int		getMinDistance( int player1, int player2 ) {
+		int a = Math.abs(players.get(player1).getPosition()+(players.size()-players.get(player2).getPosition()));
+		int b = Math.abs(players.get(player2).getPosition()-players.get(player1).getPosition());
 
-
+		return Math.min(a, b);
+	}
 }

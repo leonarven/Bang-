@@ -31,7 +31,7 @@ public class StringPacket extends PacketBase {
 	public Packet toPacket() {
 		
 		byte[] bytes = data.getBytes();
-		ByteBuffer buffer = ByteBuffer.allocate( java.lang.Character.SIZE/8 + Integer.SIZE / (8 * Integer.bitCount(super.getId())) + bytes.length ); // FIXME depends on encoding?
+		ByteBuffer buffer = ByteBuffer.allocate( 6 + bytes.length ); // FIXME depends on encoding?
 
 		buffer.putChar( super.getType().toChar() );
 		buffer.putInt( super.getId() );

@@ -32,7 +32,7 @@ public class IntPacket extends PacketBase {
 	 */
 	public Packet toPacket() {
 
-		ByteBuffer buffer = ByteBuffer.allocate( java.lang.Character.SIZE/8 + 2 * Integer.SIZE / (8 * Integer.bitCount(super.getId())) ); // FIXME depends on encoding?
+		ByteBuffer buffer = ByteBuffer.allocate( 10 ); // FIXME depends on encoding?
 		buffer.putChar( super.getType().toChar() );
 		buffer.putInt( super.getId() );
 		buffer.putInt( data );

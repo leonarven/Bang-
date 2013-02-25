@@ -18,7 +18,7 @@ public class JsonPacket extends PacketBase {
 		{ return data; }
 	
 	protected void setData( ByteBuffer data )
-		{ this.setData(new JSONObject(data.toString())); }
+		{ this.setData(new JSONObject(new String( data.array(), 6, data.limit() - 6 ))); }
 
 	/*
 	 * Asettaa datan dataksi
@@ -32,7 +32,7 @@ public class JsonPacket extends PacketBase {
 	public Packet toPacket() {
 		
 		byte[] bytes = data.toString().getBytes();
-		ByteBuffer buffer = ByteBuffer.allocate( Character.SIZE + Integer.SIZE + bytes.length ); // FIXME depends on encoding?
+		ByteBuffer buffer = ByteBuffer.allocate( Character.SIZE / 8 + Integer.SIZE / (8 * Integer.bitCount( super.getId() )) + bytes.length ); // FIXME depends on encoding?
 		buffer.putChar( super.getType().toChar() );
 		buffer.putInt( super.getId() );
 		buffer.put( bytes ); // FIXME encodings.

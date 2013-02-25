@@ -3,13 +3,14 @@ package game;
 import java.util.LinkedList;
 
 public class Player {
-	private final int id;			// Pelaaja tietoiseksi id:staan
-	private final String name;
-	private String characterName;
-	private boolean dead;			// Kuollut vai ei -> läpikäydäänkö pelaaja
-	private PlayerType type;		// Pelaajahahmon tyyppi
-	private Character character;	// Pelaajahahmo
-	private boolean 	ready;				
+	private final int 		id;			// Pelaaja tietoiseksi id:staan
+	private final String 	name;
+	private String	 		characterName;
+	private boolean 		dead;			// Kuollut vai ei -> läpikäydäänkö pelaaja
+	private PlayerType 		type;		// Pelaajahahmon tyyppi
+	private Character 		character;	// Pelaajahahmo
+	private boolean 		ready;				
+	private int 			position;
 	
 	// Ensisijaiset ("tärkeät") tiedot
 	private int range;				// Etäisyys, jolle voi ampua (päivittyy asekorttivaihdosten yhteydessä)
@@ -28,34 +29,11 @@ public class Player {
 		this.id			= id;
 		this.name 		= name;
 		this.ready 		= false;
-		
-		// Mun versiossa pelaaja luokka tehdään jo ennen kun peli on alkanu :D
-		// katso src/server/Game.java
-		
-	/*
-		this.range		= 1;
-		this.dead		= false;
-		this.character	= character;
-		
-		if (character != null) {
-			this.health		= character.GetInitialHealth();
-			// Sääntöjen mukainen lisäelämä seriffille
-			if (type == SHERIFF) this.health+=1;
-
-			this.onTurn			= character.onTurn();
-			this.onBang			= character.onBang();
-			
-			this.characterName	= character.GetName();
-
-			this.distanceTo		= character.GetInitialDistanceTo();
-			this.distanceFrom	= character.GetInitialDistanceFrom();
-		}
-		*/
 	}
 	
 	public int			getId()			{ return this.id; }
 	public String 		getName() 		{ return this.name; }
-	
+	public int			getPosition() 	{ return this.position; }
 	public PlayerType	getType()		{ return this.type; }
 	public Character	getCharacter()	{ return this.character; }
 	public int			getRange()		{ return this.range; }
@@ -64,6 +42,7 @@ public class Player {
 
 	public void setRange(int range)		{ this.range     = range; }
 	public void setHealth(int health)	{ this.health    = health; }
+	public void setPosition(int position) { this.position  = position; }
 	public void setType(PlayerType type){ this.type    = type; }
 	public void setCharacter(Character character) {
 		this.character = character;
