@@ -149,13 +149,9 @@ public class Client {
 	
 	private void startWrite() {
 		if ( !packetQueue.isEmpty() ) {
-<<<<<<< HEAD
+
 			socket.write(packetQueue.poll().toByteBuffer(), timeout, TimeUnit.SECONDS, null, new CompletionHandler<Integer, Object>() {
-=======
-			ByteBuffer packetByteBuffer = packetQueue.poll().toByteBuffer();
 			
-			socket.write(packetByteBuffer, /*0, packetByteBuffer.capacity(), */timeout, timeunit, null, new CompletionHandler<Integer, Object>() {
->>>>>>> origin/master
 				@Override
 				public void completed(Integer result, Object attachment) 
 					{ Client.this.startWrite(); }

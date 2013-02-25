@@ -43,6 +43,7 @@ public abstract class Game {
 	public int getMaxPlayers() 			{ return this.maxPlayers; }
 	public Player 	getPlayer( int id ) { return players.get( id ); }
 	public int 		getPlayerCount() 	{ return players.size(); }
+	public boolean	hasPlayer( int id )				{ return players.containsKey( id ); }
 	public void 	addPlayer( int id, Player p ) 	{ players.put( id, p ); }
 	public void 	removePlayer( int id ) 			{ players.remove( id ); }
 

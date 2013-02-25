@@ -1,6 +1,6 @@
 package server;
 
-import server.Game;
+import server.ServerLogic;
 import java.io.IOException;
 import java.net.*;
 import java.nio.channels.*;
@@ -23,7 +23,7 @@ public class Server {
 	private int connectionCounter = 0;
 	public Set<Connection> connections = Collections.newSetFromMap( new ConcurrentHashMap<Connection, Boolean>() );	
 	
-	private ServerLogic game;
+	private ServerLogic serverLogic;
 	
 	private Server( int port ) throws Exception {
 		
@@ -42,14 +42,14 @@ public class Server {
 			public void completed(AsynchronousSocketChannel socket, Void att) {
 				System.out.println( "New connection!" );
 	    		// Don't accept new connections if game is running or there is enough players alreayd
-				if ( !Server.this.game.isRunning() && Server.this.game.getPlayerCount() <= Server.this.game.getMaxPlayers() ) {
+				if ( !Server.this.serverLogic.isRunning() && Server.this.serverLogic.getPlayerCount() <= Server.this.serverLogic.getMaxPlayers() ) {
 					Connection c = new Connection( ++connectionCounter, socket, Server.this );
 					System.out.println( "New connection, #" + c.getId() );
 					
 					JSONObject settings = new JSONObject();
-					settings.put("minPlayers", game.getMinPlayers());
-					settings.put("maxPlayers", game.getMaxPlayers());
-					settings.put("playersCount", game.getPlayerCount());
+					settings.put("minPlayers", serverLogic.getMinPlayers());
+					settings.put("maxPlayers", serverLogic.getMaxPlayers());
+					settings.put("playersCount", serverLogic.getPlayerCount());
 					settings.put("version", VERSION);
 					settings.put("timeout", Connection.timeout);
 					
@@ -66,7 +66,7 @@ public class Server {
 			}
 		});
 
-		game = new Game( this );
+		serverLogic = new ServerLogic( this );
 	}
 
 	private void serverLoop() {
@@ -80,8 +80,16 @@ public class Server {
 			// https://en.wikipedia.org/wiki/Producer-consumer_problem	
 			// Client should send keep-alive messages. receive has timeout value.
 			if ( c.hasReceivedData() ) {
-				Packet received = c.receive();				
-				game.handlePacket( received, c );
+				Packet packet = c.receive();				
+				
+				// TODO: jos id väärä, huuda lujaa
+				
+				// Packet might be null if other thread has managed to poll it before this
+				if ( packet == null ) continue;
+				
+				packet.toByteBuffer().putInt(2, c.getId());
+
+				serverLogic.handlePacket( packet );
 			}
 		}
 	}
@@ -89,9 +97,11 @@ public class Server {
 	public void dropConnection( Connection c ) {
 		System.out.println( "Dropping connection #" + c.getId() );
 		
+		
+		
 		if ( connections.contains( c )) {
 			connections.remove( c );
-			game.removePlayer( c.getId() );
+			serverLogic.removePlayer( c.getId() );
 		}
 
 		if ( c.isConnected() ) {	
@@ -119,7 +129,7 @@ public class Server {
 		}
 		
 		connections.clear();
-		game.reset();
+		serverLogic.reset();
 	}
 	
 	public static void main(String[] args) {
