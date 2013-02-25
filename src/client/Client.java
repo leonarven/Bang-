@@ -23,11 +23,10 @@ public class Client {
 	public static String	IP			= "127.0.0.1";
 	public static int		BUFFER_SIZE	= 512;
 	
-	public static int 		timeout 	= 100;
-	public static TimeUnit 	timeunit 	= TimeUnit.SECONDS;
+	public static int 		timeout 	= 10;
 	public static String	name		= "Unknown";
 	
-	private Game game;
+	private ClientLogic clientLogic;
 
 	private final AsynchronousChannelGroup group;
 	private AsynchronousSocketChannel socket;
@@ -92,7 +91,7 @@ public class Client {
 
 			(new Thread(new PingLoop(localPlayer, serverSettings.getInt("timeout")))).start();
 
-			game = new Game( this, localPlayer );
+			clientLogic = new ClientLogic( this, localPlayer );
 		}
 
 		// Start receiving packets in another thread:
@@ -109,7 +108,7 @@ public class Client {
 		System.out.print("> ");
 		String message = reader.nextLine();
 		
-		this.send(new StringPacket(PacketType.MSG, game.getLocalPlayerId(), message).toPacket());
+		this.send(new StringPacket(PacketType.MSG, clientLogic.getLocalPlayerId(), message).toPacket());
 		
 		// Give server some time to respond => nicer console output 
 		try {
@@ -144,7 +143,7 @@ public class Client {
 	
 	private void startWrite() {
 		if ( !packetQueue.isEmpty() ) {
-			socket.write(packetQueue.poll().toByteBuffer(), timeout, timeunit, null, new CompletionHandler<Integer, Object>() {
+			socket.write(packetQueue.poll().toByteBuffer(), timeout, TimeUnit.SECONDS, null, new CompletionHandler<Integer, Object>() {
 				@Override
 				public void completed(Integer result, Object attachment) 
 					{ Client.this.startWrite(); }
@@ -161,7 +160,7 @@ public class Client {
 	private void startRead( ByteBuffer receiveBuffer ) {
 		receiveBuffer.clear();
 		
-		socket.read( receiveBuffer, timeout, timeunit, receiveBuffer, new CompletionHandler<Integer, ByteBuffer>() {
+		socket.read( receiveBuffer, receiveBuffer, new CompletionHandler<Integer, ByteBuffer>() {
 			@Override
 			public void completed(Integer result, ByteBuffer attachment) { 
 				if ( result > 0 ) {
@@ -169,7 +168,7 @@ public class Client {
 					// so it can be modified after this:
 					Packet packet = new Packet(attachment);
 					
-					game.handlePacket(packet);
+					clientLogic.handlePacket(packet);
 
 					Client.this.startRead( attachment );
 				} else {

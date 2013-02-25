@@ -23,10 +23,10 @@ public class Server {
 	private int connectionCounter = 0;
 	private Set<Connection> connections = Collections.newSetFromMap( new ConcurrentHashMap<Connection, Boolean>() );	
 	
-	private Game game;
+	private ServerLogic game;
 	
 	private Server( int port ) throws Exception {
-
+		
 		System.out.println( "Server::Server()" );
 		System.out.println( "Using port "+port );
 

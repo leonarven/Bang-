@@ -7,7 +7,7 @@ import java.util.LinkedList;
 
 import network.*;
 
-public class Game {
+public class Game1 {
 	private final Client client;
 	
 	private HashMap<Integer, Player> players 	= new HashMap<Integer, Player>();
@@ -17,7 +17,7 @@ public class Game {
 
 	private boolean isRunning = false;
 	
-	public Game( Client client, int localPlayerId ) {
+	public Game1( Client client, int localPlayerId ) {
 		this.client = client;
 		this.localPlayerId = localPlayerId;
 	}

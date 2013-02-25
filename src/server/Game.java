@@ -8,7 +8,7 @@ import game.Card;
 import game.Character;
 import game.Player;
 
-public class Game {
+public class Game1 {
 	private HashMap<Integer, Player> players = new HashMap<Integer, Player>(); // Synced with client
 	private LinkedList<Card> discardPile = new LinkedList<Card>(); // Synced with client
 	private LinkedList<Card> cardPile = new LinkedList<Card>(); // Client has no information about these
@@ -20,7 +20,7 @@ public class Game {
 	private int maxPlayers = 8;
 	private int minPlayers = 1;
 	
-	public Game( Server server ) {
+	public Game1( Server server ) {
 		this.server = server;
 		
 	}
