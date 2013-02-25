@@ -21,7 +21,7 @@ public class Server {
 	final AsynchronousServerSocketChannel acceptor;
 	
 	private int connectionCounter = 0;
-	private Set<Connection> connections = Collections.newSetFromMap( new ConcurrentHashMap<Connection, Boolean>() );	
+	public Set<Connection> connections = Collections.newSetFromMap( new ConcurrentHashMap<Connection, Boolean>() );	
 	
 	private ServerLogic game;
 	
@@ -54,7 +54,7 @@ public class Server {
 					settings.put("timeout", Connection.timeout);
 					
 					System.out.println("DEBUG: Sending serever settings: "+settings.toString());
-					c.send(new StringPacket(PacketType.SERVER_INFO, c.getId(), settings.toString()).toPacket());
+					c.send(new JsonPacket(PacketType.SERVER_INFO, c.getId(), settings).toPacket());
 					connections.add( c );
 			    }
 		    	  
@@ -80,13 +80,7 @@ public class Server {
 			// https://en.wikipedia.org/wiki/Producer-consumer_problem	
 			// Client should send keep-alive messages. receive has timeout value.
 			if ( c.hasReceivedData() ) {
-				Packet received = c.receive();
-				
-				// Ei haluta viestitulvaa
-				if (received .getType() != PacketType.PING) {
-					System.out.println( "DEBUG: c(#"+c.getId()+").hasReceivedData()" );
-				}
-				
+				Packet received = c.receive();				
 				game.handlePacket( received, c );
 			}
 		}

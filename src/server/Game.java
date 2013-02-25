@@ -1,12 +1,12 @@
 package server;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 
 import network.*;
-import game.Card;
-import game.Character;
-import game.Player;
+import game.*;
 
 public class Game1 {
 	private HashMap<Integer, Player> players = new HashMap<Integer, Player>(); // Synced with client
@@ -29,12 +29,74 @@ public class Game1 {
 		this.isRunning = true; 
 		
 		System.out.println( "Game is starting!" );
+		
+		
 
 		// TODO: Remove clients who don't have player
+		for( Connection c : server.connections ) {
+			if ( c.player == null ) server.dropConnection(c);
+		}
+
+		int renegadeCount = 0;//((int)(server.connections.size()/4 - 0.5));
+		int deputyCount   = 0;
+		int outlawCount   = 0;
 		
-		// TODO: READY-paketti pelaajille, tieto kunkin roolista
+		ArrayList<PlayerType> playerTypePile = new ArrayList<PlayerType>();
 		
-	}
+		//TODO: asetuksista
+		switch(server.connections.size()) {
+			case 9: outlawCount++;
+			case 8: renegadeCount++;
+			case 7: deputyCount  ++;
+
+			case 6: outlawCount  ++;
+			case 5: renegadeCount++;
+			case 4: deputyCount  ++;
+			
+			case 3: outlawCount  ++;
+			case 2: outlawCount  ++;
+			case 1:
+			break;
+			default:
+				assert false;
+		}
+		
+		for( int i = 0; i < outlawCount; i++)   playerTypePile.add(PlayerType.OUTLAW);
+		for( int i = 0; i < deputyCount; i++)   playerTypePile.add(PlayerType.DEPUTY);
+		for( int i = 0; i < renegadeCount; i++) playerTypePile.add(PlayerType.RENEGADE);
+
+		Collections.shuffle(playerTypePile);
+		
+		playerTypePile.add(PlayerType.SHERIFF);
+		
+		int playerTypePileI = 0;
+
+		for( Connection c : server.connections ) {
+			// TODO: READY-paketti pelaajille, tieto kunkin roolista
+
+			JSONObject playerInfoPublicJson = new JSONObject();
+			JSONObject playerInfoPrivateJson = new JSONObject();
+
+			c.player.setType(playerTypePile.get(playerTypePileI++));
+			
+			if ( c.player.getType() == PlayerType.SHERIFF )
+				playerInfoPublicJson.put("playerType", c.player.getType().toChar());
+
+			playerInfoPublicJson.put("health", c.player.getHealth());
+			playerInfoPublicJson.put("range", c.player.getRange());
+			playerInfoPublicJson.put("characterName", c.player.getCharacter().GetName());
+
+			playerInfoPrivateJson = new JSONObject(playerInfoPublicJson);
+			
+			playerInfoPrivateJson.put("playerType", c.player.getType().toChar());
+			
+			JsonPacket playerInfoPublic = new JsonPacket(PacketType.PLAYER_INFO, c.getId(), playerInfoPublicJson);
+			JsonPacket playerInfoPrivate = new JsonPacket(PacketType.PLAYER_INFO, c.getId(), playerInfoPrivateJson);
+
+			server.sendToAllBut(c.getId(), playerInfoPublic.toPacket());
+			c.send(playerInfoPrivate.toPacket());
+		}
+}
 
 	public void handlePacket( Packet packet, Connection connection ) {
 		// Packet might be null if other thread has managed to poll it before this
@@ -55,7 +117,7 @@ public class Game1 {
 					StringPacket messagePacket = new StringPacket( packet );
 					System.out.println( "DEBUG: Väitetty playerId "+messagePacket.getId() );
 					if ( messagePacket.getId() == connection.getId() ) {
-						System.out.println( "CHAT: " + player.getName() + ": " + messagePacket.getData() );
+						System.out.println( "CHAT: <" + player.getName() + "> " + messagePacket.getData() );
 						server.sendToAll( packet );
 					} else {
 						System.out.println("DEBUG: Invalid player Id in MSG");
@@ -70,7 +132,7 @@ public class Game1 {
 						player.setReady( true );
 	
 						// TODO: message(character_id):n persuteella valikoitu hahmo
-						Character character = new Character("Unknown", 3);
+						game.Character character = new game.Character("Unknown", 3);
 						player.setCharacter( character );
 	
 						server.sendToAll( packet );
@@ -91,8 +153,10 @@ public class Game1 {
 							server.dropConnection( connection ); // FIXME: Server is full
 							break;
 						}
-						player = new Player(connection.getId(), clientInfo.getData());
+
+						connection.setPlayer(player = new Player(connection.getId(), clientInfo.getData()));
 					}
+					
 	
 					if ( player.getId() == connection.getId() ) {
 						server.sendToAll( packet );

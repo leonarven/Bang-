@@ -31,12 +31,19 @@ public class StringPacket extends PacketBase {
 	public Packet toPacket() {
 		
 		byte[] bytes = data.getBytes();
-		ByteBuffer buffer = ByteBuffer.allocate( Character.SIZE + Integer.SIZE + bytes.length ); // FIXME depends on encoding?
+		ByteBuffer buffer = ByteBuffer.allocate( java.lang.Character.SIZE/8 + Integer.SIZE / (8 * Integer.bitCount(super.getId())) + bytes.length ); // FIXME depends on encoding?
+
 		buffer.putChar( super.getType().toChar() );
 		buffer.putInt( super.getId() );
 		buffer.put( bytes ); // FIXME encodings.
+
+/*		System.out.println("pos: "+buffer.position());
+		System.out.println("lenC: "+java.lang.Character.SIZE / 8);
+		System.out.println("lenI: "+Integer.SIZE / (8 * Integer.bitCount(super.getId())));
+		System.out.println("lenB: "+bytes.length);
+		System.out.println("len: "+(java.lang.Character.SIZE / 8 + Integer.SIZE / (8 * Integer.bitCount(super.getId())) + bytes.length));*/
 		
 		// Don't make copy of buffer
-		return new Packet( super.getType(), buffer );	
+		return new Packet( buffer, false );	
 	}
 }

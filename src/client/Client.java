@@ -75,12 +75,12 @@ public class Client {
 		// Wait for server info
 		if (socket.read( buffer ).get() > 0) {
 
-			StringPacket serverInfo = new StringPacket(new Packet( buffer ));
+			JsonPacket serverInfo = new JsonPacket(new Packet( buffer ));
 
 			localPlayer = serverInfo.getId();
 			System.out.println("DEBUG: Getting settings ["+serverInfo.getData()+"]("+serverInfo.getData().length()+")");
 			
-			serverSettings = new JSONObject(serverInfo.getData());
+			serverSettings = serverInfo.getData();
 			System.out.println("DEBUG: clientId set: "+localPlayer);
 
 			Iterator<Object> itr = serverSettings.keys();
@@ -99,6 +99,7 @@ public class Client {
 
 		// Arpoo nimen (numeron) pelaajalle (TODO)
 		String playerName = Integer.toString(new Random().nextInt());
+		System.out.println("DEBUG: Player name generated: "+playerName);
 		StringPacket clientInfo = new StringPacket(PacketType.CLIENT_INFO, localPlayer, playerName);
 		System.out.println("DEBUG: Sending CLIENT_INFO as player #"+localPlayer);
 		send(clientInfo.toPacket());
@@ -108,7 +109,11 @@ public class Client {
 		System.out.print("> ");
 		String message = reader.nextLine();
 		
-		this.send(new StringPacket(PacketType.MSG, clientLogic.getLocalPlayerId(), message).toPacket());
+		//FIXME: Kehitysversio. poispoispois
+		if (message.compareTo("READY") == 0) 
+			this.send(new IntPacket(PacketType.READY, clientLogic.getLocalPlayerId(), true).toPacket());
+		else
+			this.send(new StringPacket(PacketType.MSG, clientLogic.getLocalPlayerId(), message).toPacket());
 		
 		// Give server some time to respond => nicer console output 
 		try {
@@ -132,8 +137,9 @@ public class Client {
 		boolean writeInProgress = !packetQueue.isEmpty();
 		packetQueue.add(packet);
 
-		if (packet.getType() != PacketType.PING)
-			System.out.println("DEBUG: Sending packet type "+packet.getType().toChar());
+		if (packet.getType() != PacketType.PING) {
+			System.out.println("DEBUG: Sending packet type "+packet.getType().toChar()+", len "+packet.toByteBuffer().capacity());
+		}
 		
 		// Only one write per channel is possible
 		if (!writeInProgress) {
@@ -143,7 +149,13 @@ public class Client {
 	
 	private void startWrite() {
 		if ( !packetQueue.isEmpty() ) {
+<<<<<<< HEAD
 			socket.write(packetQueue.poll().toByteBuffer(), timeout, TimeUnit.SECONDS, null, new CompletionHandler<Integer, Object>() {
+=======
+			ByteBuffer packetByteBuffer = packetQueue.poll().toByteBuffer();
+			
+			socket.write(packetByteBuffer, /*0, packetByteBuffer.capacity(), */timeout, timeunit, null, new CompletionHandler<Integer, Object>() {
+>>>>>>> origin/master
 				@Override
 				public void completed(Integer result, Object attachment) 
 					{ Client.this.startWrite(); }

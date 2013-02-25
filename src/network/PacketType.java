@@ -5,6 +5,7 @@ public enum PacketType {
 	MSG        ('M'), // M(char)|id(int)|msg(String),  Server message is chat with sender = 0
 	CLIENT_INFO('C'), // C(char)|from(int)|msg(String)
 	SERVER_INFO('S'), // S(char)|version(int)|client_id(int)|max_players(int)|min_players(int)
+	PLAYER_INFO('L'),
 	READY	   ('R'),
 	/* READY:
 	 * Clientin lähettämänä tieto pelaajan valitsemasta hahmosta. Jos character === "", pelaaja perunut "valmiutensa"
@@ -33,6 +34,7 @@ public enum PacketType {
 			case 'P': return PING;
 			case 'C': return CLIENT_INFO;
 			case 'S': return SERVER_INFO;
+			case 'L': return PLAYER_INFO;
 			case 'M': return MSG;
 			case 'R': return READY;
 			case '?': default: return ERROR;
