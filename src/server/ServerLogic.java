@@ -126,21 +126,46 @@ public class ServerLogic extends Game {
 		
 		//TODO: asetuksista
 		switch(server.connections.size()) {
-			case 9: outlawCount++;
-			case 8: renegadeCount++;
-			case 7: deputyCount  ++;
 
-			case 6: outlawCount  ++;
-			case 5: renegadeCount++;
-			case 4: deputyCount  ++;
+		
+			case 12: renegadeCount++;
+			case 11: outlawCount  ++;
+			case 10: deputyCount  ++;
+		
+			case 9: outlawCount   ++;
+			case 8: renegadeCount ++;
+			case 7: deputyCount   ++;
+
+			case 6: outlawCount   ++;
+			case 5: deputyCount   ++;
+			case 4: renegadeCount ++;
 			
-			case 3: outlawCount  ++;
-			case 2: outlawCount  ++;
+			case 3: outlawCount   ++;
+			case 2: outlawCount   ++;
 			case 1:
 			break;
 			default:
 				assert false;
 		}
+		
+		
+		
+		
+		1,2,2,3,4,2,3,4,2,...
+		1,2,2,4,3,2,3,4,2,3,2,4,..
+		
+		
+		1 2 2
+		4 3 2 3
+		4 2 3 2
+		
+		
+		
+		1: n == 1
+		2: 
+		3: 
+		4: n%4 == 0
+		
 		
 		for( int i = 0; i < outlawCount; i++)   playerTypePile.add(PlayerType.OUTLAW);
 		for( int i = 0; i < deputyCount; i++)   playerTypePile.add(PlayerType.DEPUTY);
